@@ -84,7 +84,10 @@ class NotesApp(App):
         ("e", "edit_note", "Edit Note"),
         ("f", "filter_notes", "Filter Notes"),
         ("o", "unfold_tree", "Unfold All"),
+        ("F", "toggle_follow", "Follow Mode"),
     ]
+
+    follow_mode = reactive(False)
 
     def __init__(self):
         super().__init__()
@@ -163,12 +166,26 @@ class NotesApp(App):
                 for child in note.children:
                     self._populate_tree([child], node)  # Pass each child as a single-item list
 
+    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
+        """Handle node highlight changes."""
+        if self.follow_mode:
+            note = event.node.data
+            if note and isinstance(note, api.TreeNote):
+                viewer = self.query_one("#note-viewer", NoteViewer)
+                viewer.display_note(note.content)
+
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
         """Handle note selection."""
-        note = event.node.data
-        if note and isinstance(note, api.TreeNote):
-            viewer = self.query_one("#note-viewer", NoteViewer)
-            viewer.display_note(note.content)
+        if not self.follow_mode:
+            note = event.node.data
+            if note and isinstance(note, api.TreeNote):
+                viewer = self.query_one("#note-viewer", NoteViewer)
+                viewer.display_note(note.content)
+
+    def action_toggle_follow(self) -> None:
+        """Toggle follow mode."""
+        self.follow_mode = not self.follow_mode
+        self.notify(f"Follow mode {'enabled' if self.follow_mode else 'disabled'}")
 
     def action_refresh(self) -> None:
         """Refresh the notes tree."""
