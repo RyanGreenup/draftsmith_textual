@@ -87,9 +87,9 @@ class NotesApp(App):
         for note in notes:
             # Create a node for this note
             if isinstance(parent, Tree):
-                node = parent.root.add(note.title, data=note, expand=True)
+                node = parent.root.add(note.title, data=note)
             else:
-                node = parent.add_leaf(note.title, data=note, expand=True)
+                node = parent.add_leaf(note.title, data=note)
             # Recursively add all children
             if note.children:
                 for child in note.children:
