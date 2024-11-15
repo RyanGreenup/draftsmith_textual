@@ -227,7 +227,7 @@ class NotesApp(App):
             # Clean up temp file
             tmp_path.unlink()
             
-    async def handle_input_change(self, value: str) -> None:
+    def handle_input_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
         if not value:
             self.refresh_notes()
