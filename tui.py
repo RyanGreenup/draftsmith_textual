@@ -112,26 +112,55 @@ class NotesApp(App):
         height: 3;  # Match container height
         background: $boost;  # Match container background
     }
+
+    Footer {
+        background: $boost;
+        color: $text;
+        padding: 0 1;
+    }
+
+    Footer > .footer--key {
+        background: $primary-darken-2;
+        color: $text;
+        padding: 0 1;
+        margin: 0 1 0 0;
+        border: none;
+    }
+
+    Footer > .footer--highlight {
+        background: $primary-darken-3;
+        color: $text;
+    }
+
+    Footer > .footer--description {
+        color: $text-muted;
+        padding: 0 2 0 0;
+    }
     """
 
     BINDINGS = [
-        ("q", "quit", "Quit"),
-        ("r", "refresh", "Refresh"),
-        ("right", "expand_node", "Expand"),
-        ("left", "collapse_node", "Collapse"),
-        ("l", "expand_node", "Expand"),
-        ("h", "collapse_node", "Collapse"),
-        ("e", "edit_note", "Edit Note"),
+        # Navigation
+        ("j", "cursor_down", "↓"),
+        ("k", "cursor_up", "↑"),
+        ("h", "collapse_node", "←"),
+        ("l", "expand_node", "→"),
+        
+        # Folding
+        ("z", "fold_cycle", "Fold →"),
+        ("Z", "fold_cycle_reverse", "← Fold"),
+        ("o", "unfold_tree", "Unfold"),
+        ("O", "fold_to_first", "Level 1"),
+        
+        # Actions
+        ("e", "edit_note", "Edit"),
         ("E", "gui_edit_note", "GUI Edit"),
-        ("f", "filter_notes", "Filter Notes"),
-        ("s", "search_notes", "Search Notes"),
-        ("o", "unfold_tree", "Unfold All"),
-        ("O", "fold_to_first", "Fold to First Level"),
-        ("F", "toggle_follow", "Follow Mode"),
-        ("j", "cursor_down", "Down"),
-        ("k", "cursor_up", "Up"),
-        ("z", "fold_cycle", "Cycle Fold"),
-        ("Z", "fold_cycle_reverse", "Cycle Fold Reverse"),
+        ("f", "filter_notes", "Filter"),
+        ("s", "search_notes", "Search"),
+        ("F", "toggle_follow", "Follow"),
+        ("r", "refresh", "Refresh"),
+        
+        # System
+        ("q", "quit", "Quit"),
     ]
 
     follow_mode = reactive(True)
