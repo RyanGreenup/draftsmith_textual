@@ -99,6 +99,8 @@ class NotesApp(App):
         ("f", "filter_notes", "Filter Notes"),
         ("o", "unfold_tree", "Unfold All"),
         ("F", "toggle_follow", "Follow Mode"),
+        ("j", "cursor_down", "Down"),
+        ("k", "cursor_up", "Up"),
     ]
 
     follow_mode = reactive(True)
@@ -254,6 +256,16 @@ class NotesApp(App):
         """Unfold the entire tree."""
         tree = self.query_one("#notes-tree", Tree)
         self._unfold_node(tree.root)
+
+    def action_cursor_down(self) -> None:
+        """Move cursor down in the tree."""
+        tree = self.query_one("#notes-tree", Tree)
+        tree.action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        """Move cursor up in the tree."""
+        tree = self.query_one("#notes-tree", Tree)
+        tree.action_cursor_up()
 
     def action_edit_note(self) -> None:
         """Edit the current note in an external editor."""
