@@ -128,12 +128,13 @@ class NotesApp(App):
             tmp.write(note.content or '')
             tmp_path = Path(tmp.name)
 
-        # Open the editor (using $EDITOR or falling back to vim)
-        editor = os.environ.get('EDITOR', 'vim')
         try:
-            subprocess.run([editor, str(tmp_path)], check=True)
+            # Suspend the TUI, restore terminal state
+            with self.suspend():
+                editor = os.environ.get('EDITOR', 'vim')
+                result = subprocess.run([editor, str(tmp_path)], check=True)
             
-            # Read the edited content
+            # Read the edited content after resuming TUI
             with open(tmp_path) as f:
                 new_content = f.read()
 
