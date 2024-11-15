@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 textual = "^0.85.2"
+python-levenshtein = "^0.26.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.3"

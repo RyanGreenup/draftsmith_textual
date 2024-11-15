@@ -2,7 +2,8 @@ import tempfile
 import subprocess
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
+from Levenshtein import distance
 from pathlib import Path
 
 from rich.markdown import Markdown
@@ -49,6 +50,7 @@ class NotesApp(App):
         ("right", "expand_node", "Expand"),
         ("left", "collapse_node", "Collapse"),
         ("e", "edit_note", "Edit Note"),
+        ("f", "filter_notes", "Filter Notes"),
     ]
 
     def __init__(self):
@@ -67,6 +69,38 @@ class NotesApp(App):
     def on_mount(self) -> None:
         """Load the notes tree when the app starts."""
         self.refresh_notes()
+
+    def _filter_notes(self, notes: List[api.TreeNote], query: str, max_distance: int = 3) -> List[api.TreeNote]:
+        """Filter notes based on fuzzy string matching."""
+        filtered = []
+        for note in notes:
+            # Check if the current note matches
+            if distance(query.lower(), note.title.lower()) <= max_distance:
+                # If it matches, include it with empty children
+                filtered.append(api.TreeNote(
+                    id=note.id,
+                    title=note.title,
+                    content=note.content,
+                    children=[]
+                ))
+            # Recursively filter children
+            if note.children:
+                filtered_children = self._filter_notes(note.children, query)
+                if filtered_children:
+                    # If any children match, include this note with only matching children
+                    if not any(n.id == note.id for n in filtered):
+                        filtered.append(api.TreeNote(
+                            id=note.id,
+                            title=note.title,
+                            content=note.content,
+                            children=filtered_children
+                        ))
+                    else:
+                        # Update existing note's children
+                        for existing in filtered:
+                            if existing.id == note.id:
+                                existing.children = filtered_children
+        return filtered
 
     def refresh_notes(self) -> None:
         """Refresh the notes tree from the API."""
@@ -160,6 +194,45 @@ class NotesApp(App):
         finally:
             # Clean up temp file
             tmp_path.unlink()
+            
+    async def handle_input_change(self, event) -> None:
+        """Handle input changes in the filter dialog."""
+        if not event.value:
+            self.refresh_notes()
+            return
+            
+        tree = self.query_one("#notes-tree", Tree)
+        tree.clear()
+        
+        try:
+            notes = self.notes_api.get_notes_tree()
+            filtered_notes = self._filter_notes(notes, event.value)
+            root = tree.root
+            self._populate_tree(filtered_notes, root)
+        except Exception as e:
+            tree.root.add_leaf("Error filtering notes: " + str(e))
+
+    async def handle_input_submit(self, event) -> None:
+        """Handle input submission in the filter dialog."""
+        dialog = event.input.parent
+        dialog.remove()
+
+    async def action_filter_notes(self) -> None:
+        """Filter notes based on fuzzy string matching."""
+        from textual.widgets import Input
+        from textual.containers import Container
+        
+        class FilterDialog(Container):
+            def compose(self) -> ComposeResult:
+                yield Input(placeholder="Enter filter text...")
+        
+        dialog = FilterDialog()
+        await self.mount(dialog)
+        input_widget = dialog.query_one(Input)
+        input_widget.focus()
+        
+        input_widget.on_change = self.handle_input_change
+        input_widget.on_submit = self.handle_input_submit
 
 if __name__ == "__main__":
     app = NotesApp()
