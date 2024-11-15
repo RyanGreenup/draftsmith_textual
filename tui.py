@@ -139,9 +139,29 @@ class NotesApp(App):
                 filtered.append(current_note)
         return filtered
 
+    def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
+        """Get the titles of all expanded nodes in the tree."""
+        expanded = set()
+        if node.is_expanded:
+            expanded.add(node.label)
+            for child in node.children:
+                expanded.update(self._get_expanded_nodes(child))
+        return expanded
+
+    def _restore_expanded_nodes(self, node: TreeNode, expanded_nodes: set[str]) -> None:
+        """Restore the expanded state of nodes."""
+        if node.label in expanded_nodes:
+            node.expand()
+        for child in node.children:
+            self._restore_expanded_nodes(child, expanded_nodes)
+
     def refresh_notes(self) -> None:
-        """Refresh the notes tree from the API."""
+        """Refresh the notes tree from the API while preserving expanded state."""
         tree = self.query_one("#notes-tree", Tree)
+        
+        # Store expanded state before clearing
+        expanded_nodes = self._get_expanded_nodes(tree.root)
+        
         tree.clear()
 
         try:
@@ -149,6 +169,8 @@ class NotesApp(App):
             # Create the root node first
             root = tree.root
             self._populate_tree(notes, root)
+            # Restore expanded state
+            self._restore_expanded_nodes(root, expanded_nodes)
         except Exception as e:
             # Add error message to root node
             tree.root.add_leaf("Error loading notes: " + str(e))
