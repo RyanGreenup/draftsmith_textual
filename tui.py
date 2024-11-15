@@ -63,13 +63,13 @@ class NotesApp(App):
     """Notes viewing application."""
 
     last_filter = ""  # Store the last filter query
-    
+
     CSS = """
     Tree {
         width: 30%;
         dock: left;
     }
-    
+
     NoteViewer {
         width: 70%;
         dock: right;
@@ -78,7 +78,7 @@ class NotesApp(App):
     }
 
     FilterDialog {
-        align: top center;  # Change alignment to top
+        align: center top;
     }
 
     FilterDialog Input {
