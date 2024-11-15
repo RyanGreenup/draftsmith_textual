@@ -86,7 +86,10 @@ class NotesApp(App):
         """Recursively populate the tree with notes."""
         for note in notes:
             # Create a node for this note
-            node = parent.add(note.title, data=note, expand=True)  # expand=True shows all levels
+            if isinstance(parent, Tree):
+                node = parent.root.add(note.title, data=note, expand=True)
+            else:
+                node = parent.add_leaf(note.title, data=note, expand=True)
             # Recursively add all children
             if note.children:
                 for child in note.children:
