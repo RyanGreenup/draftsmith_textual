@@ -95,6 +95,8 @@ class NotesApp(App):
         ("r", "refresh", "Refresh"),
         ("right", "expand_node", "Expand"),
         ("left", "collapse_node", "Collapse"),
+        ("l", "expand_node", "Expand"),
+        ("h", "collapse_node", "Collapse"),
         ("e", "edit_note", "Edit Note"),
         ("f", "filter_notes", "Filter Notes"),
         ("o", "unfold_tree", "Unfold All"),
