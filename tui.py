@@ -10,6 +10,7 @@ from rich.markdown import Markdown
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.containers import Container, VerticalScroll
+from textual.widgets import Input
 from textual.reactive import reactive
 from textual.widgets import Footer, Header, Static, Tree
 from textual.widgets.tree import TreeNode
@@ -26,6 +27,28 @@ class NoteViewer(Static):
             self.update(markdown)
         else:
             self.update("No content")
+
+class FilterDialog(Container):
+    DEFAULT_CSS = """
+    FilterDialog {
+        background: $boost;
+        height: auto;
+        padding: 1;
+        border: thick $background;
+    }
+    """
+    
+    def compose(self) -> ComposeResult:
+        yield Input(placeholder="Enter filter text...")
+
+    def on_mount(self) -> None:
+        self.query_one(Input).focus()
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        self.app.handle_input_change(event.value)
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.app.handle_input_submit()
 
 class NotesApp(App):
     """Notes viewing application."""
@@ -229,31 +252,6 @@ class NotesApp(App):
 
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
-        from textual.widgets import Input
-        from textual.containers import Container
-        
-        class FilterDialog(Container):
-            DEFAULT_CSS = """
-            FilterDialog {
-                background: $boost;
-                height: auto;
-                padding: 1;
-                border: thick $background;
-            }
-            """
-            
-            def compose(self) -> ComposeResult:
-                yield Input(placeholder="Enter filter text...")
-
-            def on_mount(self) -> None:
-                self.query_one(Input).focus()
-
-            def on_input_changed(self, event: Input.Changed) -> None:
-                self.app.handle_input_change(event.value)
-
-            def on_input_submitted(self, event: Input.Submitted) -> None:
-                self.app.handle_input_submit()
-        
         await self.mount(FilterDialog())
 
 if __name__ == "__main__":
