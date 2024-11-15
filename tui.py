@@ -1,6 +1,7 @@
 import tempfile
 import subprocess
 import os
+import asyncio
 from datetime import datetime
 from typing import Optional, List
 from Levenshtein import distance
@@ -121,6 +122,7 @@ class NotesApp(App):
         ("l", "expand_node", "Expand"),
         ("h", "collapse_node", "Collapse"),
         ("e", "edit_note", "Edit Note"),
+        ("E", "gui_edit_note", "GUI Edit"),
         ("f", "filter_notes", "Filter Notes"),
         ("s", "search_notes", "Search Notes"),
         ("o", "unfold_tree", "Unfold All"),
@@ -321,8 +323,10 @@ class NotesApp(App):
         tree = self.query_one("#notes-tree", Tree)
         tree.action_cursor_up()
 
-    def action_edit_note(self) -> None:
-        """Edit the current note in an external editor."""
+    async def _edit_note_with_editor(
+        self, editor_cmd: str, suspend: bool = True
+    ) -> None:
+        """Edit the current note with specified editor command."""
         tree = self.query_one("#notes-tree", Tree)
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             return
@@ -335,12 +339,21 @@ class NotesApp(App):
             tmp_path = Path(tmp.name)
 
         try:
-            # Suspend the TUI, restore terminal state
-            with self.suspend():
-                editor = os.environ.get("EDITOR", "vim")
-                result = subprocess.run([editor, str(tmp_path)], check=True)
+            if suspend:
+                # Suspend the TUI, restore terminal state
+                with self.suspend():
+                    result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
+            else:
+                # Run async without suspending TUI
+                process = await asyncio.create_subprocess_exec(
+                    editor_cmd,
+                    str(tmp_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                await process.wait()
 
-            # Read the edited content after resuming TUI
+            # Read the edited content
             with open(tmp_path) as f:
                 new_content = f.read()
 
@@ -355,7 +368,6 @@ class NotesApp(App):
 
             # Refresh the tree and reapply filter if one exists
             if self.last_filter:
-                # Refresh and filter
                 notes = self.notes_api.get_notes_tree()
                 filtered_notes = self._filter_notes(notes, self.last_filter)
                 tree = self.query_one("#notes-tree", Tree)
@@ -363,14 +375,26 @@ class NotesApp(App):
                 self._populate_tree(filtered_notes, tree)
                 self._unfold_node(tree.root)
             else:
-                # Just refresh normally
                 self.refresh_notes()
 
-        except subprocess.CalledProcessError as e:
-            self.notify("Failed to edit note", severity="error")
+        except (subprocess.CalledProcessError, OSError) as e:
+            self.notify(f"Failed to edit note: {str(e)}", severity="error")
         finally:
             # Clean up temp file
             tmp_path.unlink()
+
+    async def action_edit_note(self) -> None:
+        """Edit the current note in an external editor."""
+        editor = os.environ.get("EDITOR", "vim")
+        await self._edit_note_with_editor(editor, suspend=True)
+
+    async def action_gui_edit_note(self) -> None:
+        """Edit the current note in a GUI editor."""
+        editor = os.environ.get("GUI_EDITOR")
+        if not editor:
+            self.notify("GUI_EDITOR environment variable not set", severity="error")
+            return
+        await self._edit_note_with_editor(editor, suspend=False)
 
     def handle_filter_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
