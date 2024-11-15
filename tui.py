@@ -125,7 +125,7 @@ class NotesApp(App):
         ("E", "gui_edit_note", "GUI Edit"),
         ("f", "filter_notes", "Filter Notes"),
         ("s", "search_notes", "Search Notes"),
-        ("o", "unfold_tree", "Unfold All"),
+        ("o", "fold_to_first", "Fold to First Level"),
         ("F", "toggle_follow", "Follow Mode"),
         ("j", "cursor_down", "Down"),
         ("k", "cursor_up", "Up"),
@@ -376,6 +376,13 @@ class NotesApp(App):
         if not node.children:
             return self._get_node_level(node)
         return max(self._get_max_depth(child) for child in node.children)
+
+    def action_fold_to_first(self) -> None:
+        """Fold tree to show only first level items."""
+        tree = self.query_one("#notes-tree", Tree)
+        self.current_fold_level = 1
+        self._fold_to_level(tree.root, 1)
+        self.notify("Folded to first level")
 
     def action_unfold_tree(self) -> None:
         """Unfold the entire tree."""
