@@ -105,33 +105,30 @@ class NotesApp(App):
     def _filter_notes(self, notes: List[api.TreeNote], query: str, max_distance: int = 3) -> List[api.TreeNote]:
         """Filter notes based on fuzzy string matching."""
         filtered = []
+        query = query.lower()
+        
         for note in notes:
-            # Check if the current note matches
-            if distance(query.lower(), note.title.lower()) <= max_distance:
-                # If it matches, include it with empty children
+            matches = False
+            note_filtered_children = []
+            
+            # Check if current note matches
+            if distance(query, note.title.lower()) <= max_distance:
+                matches = True
+                
+            # Recursively check children
+            if note.children:
+                note_filtered_children = self._filter_notes(note.children, query)
+                if note_filtered_children:
+                    matches = True
+                    
+            # If either the note matches or it has matching children, include it
+            if matches:
                 filtered.append(api.TreeNote(
                     id=note.id,
                     title=note.title,
                     content=note.content,
-                    children=[]
+                    children=note_filtered_children
                 ))
-            # Recursively filter children
-            if note.children:
-                filtered_children = self._filter_notes(note.children, query)
-                if filtered_children:
-                    # If any children match, include this note with only matching children
-                    if not any(n.id == note.id for n in filtered):
-                        filtered.append(api.TreeNote(
-                            id=note.id,
-                            title=note.title,
-                            content=note.content,
-                            children=filtered_children
-                        ))
-                    else:
-                        # Update existing note's children
-                        for existing in filtered:
-                            if existing.id == note.id:
-                                existing.children = filtered_children
         return filtered
 
     def refresh_notes(self) -> None:
