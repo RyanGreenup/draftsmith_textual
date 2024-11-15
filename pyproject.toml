@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "draftsmith-textual"
+version = "0.1.0"
+description = "A TUI for draftsmith"
+authors = ["ryan <exogenesis@protonmail.com>"]
+license = "GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+textual = "^0.85.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.3"
+vulture = "^2.13"
+pytest = "^8.3.3"
+pyright = "^1.1.389"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
