@@ -158,6 +158,7 @@ class NotesApp(App):
         ("s", "search_notes", "Search"),
         ("F", "toggle_follow", "Follow"),
         ("r", "refresh", "Refresh"),
+        ("f5", "toggle_flat_view", "Flat View"),
         
         # System
         ("q", "quit", "Quit"),
@@ -172,6 +173,7 @@ class NotesApp(App):
         self.last_filter = ""
         self.dialog_mode = "filter"  # Can be "filter" or "search"
         self.current_fold_level = 0  # Track current fold level
+        self.flat_view = False  # Track if we're in flat view mode
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
@@ -509,6 +511,86 @@ class NotesApp(App):
             return
         await self._edit_note_with_editor(editor, suspend=False)
 
+    def _flatten_filtered_notes(self, notes: List[api.TreeNote]) -> List[api.TreeNote]:
+        """Convert hierarchical filtered notes into a flat list."""
+        flattened = []
+        
+        def collect_matches(note: api.TreeNote):
+            # If this note has no children, it must be a match
+            if not note.children:
+                flattened.append(api.TreeNote(
+                    id=note.id,
+                    title=note.title,
+                    content=note.content,
+                    children=[]
+                ))
+            # If it has children, recurse and collect matches
+            else:
+                for child in note.children:
+                    collect_matches(child)
+        
+        for note in notes:
+            collect_matches(note)
+        
+        return flattened
+
+    def action_toggle_flat_view(self) -> None:
+        """Toggle between flat and hierarchical view for filtered results."""
+        self.flat_view = not self.flat_view
+        
+        # Only refresh if we're currently filtering/searching
+        if self.last_filter or self.last_search:
+            if self.dialog_mode == "search":
+                self._apply_search(self.last_search)
+            else:
+                self._apply_filter(self.last_filter)
+        
+        self.notify(f"{'Flat' if self.flat_view else 'Hierarchical'} view")
+
+    def _apply_search(self, value: str) -> None:
+        """Apply search with current view mode."""
+        tree = self.query_one("#notes-tree", Tree)
+        tree.clear()
+
+        try:
+            # Get search results and extract IDs
+            search_results = self.notes_api.search_notes(value)
+            matching_ids = {note.id for note in search_results}
+
+            # Get full tree and filter it based on matching IDs
+            notes = self.notes_api.get_notes_tree()
+            filtered_notes = self._filter_notes_by_ids(notes, matching_ids)
+
+            # Convert to flat view if needed
+            if self.flat_view:
+                filtered_notes = self._flatten_filtered_notes(filtered_notes)
+
+            # Populate tree with filtered results
+            root = tree.root
+            self._populate_tree(filtered_notes, root)
+            self._unfold_node(tree.root)
+        except Exception as e:
+            tree.root.add_leaf("Error searching notes: " + str(e))
+
+    def _apply_filter(self, value: str) -> None:
+        """Apply filter with current view mode."""
+        tree = self.query_one("#notes-tree", Tree)
+        tree.clear()
+
+        try:
+            notes = self.notes_api.get_notes_tree()
+            filtered_notes = self._filter_notes(notes, value)
+            
+            # Convert to flat view if needed
+            if self.flat_view:
+                filtered_notes = self._flatten_filtered_notes(filtered_notes)
+
+            root = tree.root
+            self._populate_tree(filtered_notes, root)
+            self._unfold_node(tree.root)
+        except Exception as e:
+            tree.root.add_leaf("Error filtering notes: " + str(e))
+
     def handle_filter_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
         if self.dialog_mode == "search":
@@ -516,25 +598,7 @@ class NotesApp(App):
             if not value:
                 self.refresh_notes()
                 return
-
-            tree = self.query_one("#notes-tree", Tree)
-            tree.clear()
-
-            try:
-                # Get search results and extract IDs
-                search_results = self.notes_api.search_notes(value)
-                matching_ids = {note.id for note in search_results}
-
-                # Get full tree and filter it based on matching IDs
-                notes = self.notes_api.get_notes_tree()
-                filtered_notes = self._filter_notes_by_ids(notes, matching_ids)
-
-                # Populate tree with filtered results
-                root = tree.root
-                self._populate_tree(filtered_notes, root)
-                self._unfold_node(tree.root)
-            except Exception as e:
-                tree.root.add_leaf("Error searching notes: " + str(e))
+            self._apply_search(value)
         else:
             # Original filter logic
             self.last_filter = value
