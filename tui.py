@@ -104,31 +104,30 @@ class NotesApp(App):
 
     def _filter_notes(self, notes: List[api.TreeNote], query: str, max_distance: int = 3) -> List[api.TreeNote]:
         """Filter notes based on fuzzy string matching."""
+        if not query:
+            return notes
+            
         filtered = []
         query = query.lower()
         
         for note in notes:
-            matches = False
-            note_filtered_children = []
+            current_note = api.TreeNote(
+                id=note.id,
+                title=note.title,
+                content=note.content,
+                children=[]
+            )
             
             # Check if current note matches
-            if distance(query, note.title.lower()) <= max_distance:
-                matches = True
-                
-            # Recursively check children
-            if note.children:
-                note_filtered_children = self._filter_notes(note.children, query)
-                if note_filtered_children:
-                    matches = True
-                    
-            # If either the note matches or it has matching children, include it
-            if matches:
-                filtered.append(api.TreeNote(
-                    id=note.id,
-                    title=note.title,
-                    content=note.content,
-                    children=note_filtered_children
-                ))
+            title_matches = distance(query, note.title.lower()) <= max_distance
+            
+            # Recursively filter children
+            filtered_children = self._filter_notes(note.children, query) if note.children else []
+            
+            # Include note if it matches or has matching children
+            if title_matches or filtered_children:
+                current_note.children = filtered_children
+                filtered.append(current_note)
         return filtered
 
     def refresh_notes(self) -> None:
