@@ -42,6 +42,15 @@ class NotesApp(App):
         background: $surface;
         padding: 1;
     }
+
+    FilterDialog {
+        align: center middle;
+    }
+
+    FilterDialog Input {
+        width: 80%;
+        margin: 1;
+    }
     """
 
     BINDINGS = [
@@ -195,9 +204,9 @@ class NotesApp(App):
             # Clean up temp file
             tmp_path.unlink()
             
-    async def handle_input_change(self, event) -> None:
+    async def handle_input_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
-        if not event.value:
+        if not value:
             self.refresh_notes()
             return
             
@@ -206,16 +215,17 @@ class NotesApp(App):
         
         try:
             notes = self.notes_api.get_notes_tree()
-            filtered_notes = self._filter_notes(notes, event.value)
+            filtered_notes = self._filter_notes(notes, value)
             root = tree.root
             self._populate_tree(filtered_notes, root)
         except Exception as e:
             tree.root.add_leaf("Error filtering notes: " + str(e))
 
-    async def handle_input_submit(self, event) -> None:
+    def handle_input_submit(self) -> None:
         """Handle input submission in the filter dialog."""
-        dialog = event.input.parent
-        dialog.remove()
+        dialog = self.query_one(FilterDialog)
+        if dialog:
+            dialog.remove()
 
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
@@ -223,16 +233,28 @@ class NotesApp(App):
         from textual.containers import Container
         
         class FilterDialog(Container):
+            DEFAULT_CSS = """
+            FilterDialog {
+                background: $boost;
+                height: auto;
+                padding: 1;
+                border: thick $background;
+            }
+            """
+            
             def compose(self) -> ComposeResult:
                 yield Input(placeholder="Enter filter text...")
+
+            def on_mount(self) -> None:
+                self.query_one(Input).focus()
+
+            def on_input_changed(self, event: Input.Changed) -> None:
+                self.app.handle_input_change(event.value)
+
+            def on_input_submitted(self, event: Input.Submitted) -> None:
+                self.app.handle_input_submit()
         
-        dialog = FilterDialog()
-        await self.mount(dialog)
-        input_widget = dialog.query_one(Input)
-        input_widget.focus()
-        
-        input_widget.on_change = self.handle_input_change
-        input_widget.on_submit = self.handle_input_submit
+        await self.mount(FilterDialog())
 
 if __name__ == "__main__":
     app = NotesApp()
