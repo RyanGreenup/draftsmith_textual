@@ -151,6 +151,27 @@ class NotesApp(App):
         """Load the notes tree when the app starts."""
         self.refresh_notes()
 
+    def _filter_notes_by_ids(
+        self, notes: List[api.TreeNote], matching_ids: set[int]
+    ) -> List[api.TreeNote]:
+        """Filter notes tree to only include paths to matching IDs."""
+        filtered = []
+        
+        for note in notes:
+            current_note = api.TreeNote(
+                id=note.id, title=note.title, content=note.content, children=[]
+            )
+            
+            # Recursively filter children
+            filtered_children = self._filter_notes_by_ids(note.children, matching_ids) if note.children else []
+            
+            # Include note if it matches or has matching children
+            if note.id in matching_ids or filtered_children:
+                current_note.children = filtered_children
+                filtered.append(current_note)
+                
+        return filtered
+
     def _filter_notes(
         self, notes: List[api.TreeNote], query: str
     ) -> List[api.TreeNote]:
@@ -359,20 +380,17 @@ class NotesApp(App):
             tree.clear()
 
             try:
-                # Get search results
+                # Get search results and extract IDs
                 search_results = self.notes_api.search_notes(value)
+                matching_ids = {note.id for note in search_results}
 
-                # Convert search results to TreeNote format
-                tree_notes = [
-                    api.TreeNote(
-                        id=note.id, title=note.title, content=note.content, children=[]
-                    )
-                    for note in search_results
-                ]
+                # Get full tree and filter it based on matching IDs
+                notes = self.notes_api.get_notes_tree()
+                filtered_notes = self._filter_notes_by_ids(notes, matching_ids)
 
-                # Populate tree with results
+                # Populate tree with filtered results
                 root = tree.root
-                self._populate_tree(tree_notes, root)
+                self._populate_tree(filtered_notes, root)
                 self._unfold_node(tree.root)
             except Exception as e:
                 tree.root.add_leaf("Error searching notes: " + str(e))
