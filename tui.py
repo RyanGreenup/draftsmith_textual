@@ -34,9 +34,12 @@ class FilterDialog(Container):
     DEFAULT_CSS = """
     FilterDialog {
         background: $boost;
-        height: auto;
-        padding: 1;
-        border: thick $background;
+        height: 3;  # Reduce height to 3 lines
+        width: 60%;  # Set width to 60% of screen
+        margin: 1 0 0 0;  # Add margin at top
+        padding: 0;  # Remove padding
+        border: tall $background;  # Change border style
+        dock: top;  # Dock to top of screen
     }
     """
 
@@ -75,12 +78,15 @@ class NotesApp(App):
     }
 
     FilterDialog {
-        align: center middle;
+        align: top center;  # Change alignment to top
     }
 
     FilterDialog Input {
-        width: 80%;
-        margin: 1;
+        width: 100%;  # Make input take full width
+        margin: 0;  # Remove margin
+        border: none;  # Remove border
+        height: 3;  # Match container height
+        background: $boost;  # Match container background
     }
     """
 
