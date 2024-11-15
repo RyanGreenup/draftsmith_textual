@@ -156,6 +156,10 @@ class NotesApp(App):
     def on_mount(self) -> None:
         """Load the notes tree when the app starts."""
         self.refresh_notes()
+        # Fold to first level on startup
+        tree = self.query_one("#notes-tree", Tree)
+        self.current_fold_level = 1
+        self._fold_to_level(tree.root, 1)
 
     def _filter_notes_by_ids(
         self, notes: List[api.TreeNote], matching_ids: set[int]
