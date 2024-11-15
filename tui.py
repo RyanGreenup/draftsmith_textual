@@ -41,10 +41,13 @@ class FilterDialog(Container):
     """
 
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="Enter filter text...")
+        yield Input(placeholder="Enter filter text...", value=self.app.last_filter)
 
     def on_mount(self) -> None:
-        self.query_one(Input).focus()
+        input_widget = self.query_one(Input)
+        input_widget.focus()
+        # Position cursor at end of text
+        input_widget.cursor_position = len(self.app.last_filter)
 
     def on_input_changed(self, event: Input.Changed) -> None:
         self.app.handle_input_change(event.value)
@@ -56,6 +59,8 @@ class FilterDialog(Container):
 class NotesApp(App):
     """Notes viewing application."""
 
+    last_filter = ""  # Store the last filter query
+    
     CSS = """
     Tree {
         width: 30%;
@@ -287,6 +292,7 @@ class NotesApp(App):
 
     def handle_input_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
+        self.last_filter = value  # Store the current filter
         if not value:
             self.refresh_notes()
             return
