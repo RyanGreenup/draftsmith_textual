@@ -129,8 +129,8 @@ class NotesApp(App):
         ("F", "toggle_follow", "Follow Mode"),
         ("j", "cursor_down", "Down"),
         ("k", "cursor_up", "Up"),
-        ("tab", "fold_cycle", "Cycle Fold"),
-        ("shift+tab", "fold_cycle_reverse", "Cycle Fold Reverse"),
+        ("z", "fold_cycle", "Cycle Fold"),
+        ("Z", "fold_cycle_reverse", "Cycle Fold Reverse"),
     ]
 
     follow_mode = reactive(True)
@@ -323,7 +323,7 @@ class NotesApp(App):
     def _fold_to_level(self, node: TreeNode, target_level: int) -> None:
         """Fold/unfold nodes to show up to target_level."""
         current_level = self._get_node_level(node)
-        
+
         # Always process the root node
         if current_level <= target_level:
             node.expand()
@@ -336,7 +336,7 @@ class NotesApp(App):
     def action_fold_cycle(self) -> None:
         """Cycle through fold levels (expanding)."""
         tree = self.query_one("#notes-tree", Tree)
-        
+
         # Calculate next fold level
         if self.current_fold_level == 0:
             self.current_fold_level = 1
@@ -352,14 +352,14 @@ class NotesApp(App):
 
         # Apply the new fold level
         self._fold_to_level(tree.root, self.current_fold_level)
-        
+
         # Notify user
         self.notify(f"Fold level: {self.current_fold_level}")
 
     def action_fold_cycle_reverse(self) -> None:
         """Cycle through fold levels (collapsing)."""
         tree = self.query_one("#notes-tree", Tree)
-        
+
         # Calculate previous fold level
         if self.current_fold_level <= 1:
             self.current_fold_level = 0
@@ -367,7 +367,7 @@ class NotesApp(App):
         else:
             self.current_fold_level //= 2
             self._fold_to_level(tree.root, self.current_fold_level)
-        
+
         # Notify user
         self.notify(f"Fold level: {self.current_fold_level}")
 
