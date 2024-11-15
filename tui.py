@@ -68,14 +68,18 @@ class NotesApp(App):
         
         try:
             notes = self.notes_api.get_notes_tree()
-            self._populate_tree(notes, tree)
+            # Create the root node first
+            root = tree.root
+            self._populate_tree(notes, root)
         except Exception as e:
-            tree.root.add("Error loading notes: " + str(e))
+            # Add error message to root node
+            tree.root.add_leaf("Error loading notes: " + str(e))
 
     def _populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
-            node = parent.add(note.title, data=note)
+            # Use add_leaf instead of add
+            node = parent.add_leaf(note.title, data=note)
             if note.children:
                 self._populate_tree(note.children, node)
 
