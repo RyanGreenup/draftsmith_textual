@@ -16,9 +16,10 @@ from textual.widgets import Footer, Header, Static, Tree
 from textual.widgets.tree import TreeNode
 import api
 
+
 class NoteViewer(Static):
     """Widget to display note content"""
-    
+
     def display_note(self, content: Optional[str]) -> None:
         """Update the display with note content"""
         if content:
@@ -27,6 +28,7 @@ class NoteViewer(Static):
             self.update(markdown)
         else:
             self.update("No content")
+
 
 class FilterDialog(Container):
     DEFAULT_CSS = """
@@ -37,7 +39,7 @@ class FilterDialog(Container):
         border: thick $background;
     }
     """
-    
+
     def compose(self) -> ComposeResult:
         yield Input(placeholder="Enter filter text...")
 
@@ -49,6 +51,7 @@ class FilterDialog(Container):
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         self.app.handle_input_submit()
+
 
 class NotesApp(App):
     """Notes viewing application."""
@@ -106,29 +109,30 @@ class NotesApp(App):
         """Load the notes tree when the app starts."""
         self.refresh_notes()
 
-    def _filter_notes(self, notes: List[api.TreeNote], query: str) -> List[api.TreeNote]:
+    def _filter_notes(
+        self, notes: List[api.TreeNote], query: str
+    ) -> List[api.TreeNote]:
         """Filter notes based on presence of all query characters."""
         if not query:
             return notes
-            
+
         filtered = []
         query_chars = set(query.lower())
-        
+
         for note in notes:
             current_note = api.TreeNote(
-                id=note.id,
-                title=note.title,
-                content=note.content,
-                children=[]
+                id=note.id, title=note.title, content=note.content, children=[]
             )
-            
+
             # Check if all query characters are present in the title
             title_chars = set(note.title.lower())
             title_matches = all(char in title_chars for char in query_chars)
-            
+
             # Recursively filter children
-            filtered_children = self._filter_notes(note.children, query) if note.children else []
-            
+            filtered_children = (
+                self._filter_notes(note.children, query) if note.children else []
+            )
+
             # Include note if it matches or has matching children
             if title_matches or filtered_children:
                 current_note.children = filtered_children
@@ -139,7 +143,7 @@ class NotesApp(App):
         """Refresh the notes tree from the API."""
         tree = self.query_one("#notes-tree", Tree)
         tree.clear()
-        
+
         try:
             notes = self.notes_api.get_notes_tree()
             # Create the root node first
@@ -149,7 +153,9 @@ class NotesApp(App):
             # Add error message to root node
             tree.root.add_leaf("Error loading notes: " + str(e))
 
-    def _populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode) -> None:
+    def _populate_tree(
+        self, notes: list[api.TreeNote], parent: Tree | TreeNode
+    ) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
             # Create a node for this note
@@ -164,7 +170,9 @@ class NotesApp(App):
             # Recursively add all children
             if note.children:
                 for child in note.children:
-                    self._populate_tree([child], node)  # Pass each child as a single-item list
+                    self._populate_tree(
+                        [child], node
+                    )  # Pass each child as a single-item list
 
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
         """Handle node highlight changes."""
@@ -221,47 +229,49 @@ class NotesApp(App):
             return
 
         note = tree.cursor_node.data
-        
+
         # Create a temporary file with the note content
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp:
-            tmp.write(note.content or '')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as tmp:
+            tmp.write(note.content or "")
             tmp_path = Path(tmp.name)
 
         try:
             # Suspend the TUI, restore terminal state
             with self.suspend():
-                editor = os.environ.get('EDITOR', 'vim')
+                editor = os.environ.get("EDITOR", "vim")
                 result = subprocess.run([editor, str(tmp_path)], check=True)
-            
+
             # Read the edited content after resuming TUI
             with open(tmp_path) as f:
                 new_content = f.read()
 
             # Update the note via API
-            self.notes_api.update_note(note.id, api.UpdateNoteRequest(content=new_content))
-            
+            self.notes_api.update_note(
+                note.id, api.UpdateNoteRequest(content=new_content)
+            )
+
             # Update the viewer
             viewer = self.query_one("#note-viewer", NoteViewer)
             viewer.display_note(new_content)
-            
+
             # Refresh the tree to show any title changes
             self.refresh_notes()
-            
+
         except subprocess.CalledProcessError as e:
             self.notify("Failed to edit note", severity="error")
         finally:
             # Clean up temp file
             tmp_path.unlink()
-            
+
     def handle_input_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""
         if not value:
             self.refresh_notes()
             return
-            
+
         tree = self.query_one("#notes-tree", Tree)
         tree.clear()
-        
+
         try:
             notes = self.notes_api.get_notes_tree()
             filtered_notes = self._filter_notes(notes, value)
@@ -279,6 +289,7 @@ class NotesApp(App):
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
         await self.mount(FilterDialog())
+
 
 if __name__ == "__main__":
     app = NotesApp()

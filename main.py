@@ -8,4 +8,3 @@ def main(api_scheme: str = "http", api_host: str = "localhost", api_port: int = 
 
 if __name__ == "__main__":
     typer.run(main)
-
