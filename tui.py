@@ -90,7 +90,7 @@ class NotesApp(App):
         ("F", "toggle_follow", "Follow Mode"),
     ]
 
-    follow_mode = reactive(False)
+    follow_mode = reactive(True)
 
     def __init__(self):
         super().__init__()
