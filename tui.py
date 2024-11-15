@@ -83,6 +83,7 @@ class NotesApp(App):
         ("left", "collapse_node", "Collapse"),
         ("e", "edit_note", "Edit Note"),
         ("f", "filter_notes", "Filter Notes"),
+        ("o", "unfold_tree", "Unfold All"),
     ]
 
     def __init__(self):
@@ -183,6 +184,17 @@ class NotesApp(App):
         tree = self.query_one("#notes-tree", Tree)
         if tree.cursor_node:
             tree.cursor_node.collapse()
+
+    def _unfold_node(self, node: TreeNode) -> None:
+        """Recursively unfold a node and all its children."""
+        node.expand()
+        for child in node.children:
+            self._unfold_node(child)
+
+    def action_unfold_tree(self) -> None:
+        """Unfold the entire tree."""
+        tree = self.query_one("#notes-tree", Tree)
+        self._unfold_node(tree.root)
 
     def action_edit_note(self) -> None:
         """Edit the current note in an external editor."""
