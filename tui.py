@@ -301,8 +301,18 @@ class NotesApp(App):
             viewer = self.query_one("#note-viewer", NoteViewer)
             viewer.display_note(new_content)
 
-            # Refresh the tree to show any title changes
-            self.refresh_notes()
+            # Refresh the tree and reapply filter if one exists
+            if self.last_filter:
+                # Refresh and filter
+                notes = self.notes_api.get_notes_tree()
+                filtered_notes = self._filter_notes(notes, self.last_filter)
+                tree = self.query_one("#notes-tree", Tree)
+                tree.clear()
+                self._populate_tree(filtered_notes, tree)
+                self._unfold_node(tree.root)
+            else:
+                # Just refresh normally
+                self.refresh_notes()
 
         except subprocess.CalledProcessError as e:
             self.notify("Failed to edit note", severity="error")
