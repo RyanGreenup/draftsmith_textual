@@ -30,33 +30,6 @@ class NoteViewer(Static):
             self.update("No content")
 
 
-class SearchDialog(Container):
-    DEFAULT_CSS = """
-    SearchDialog {
-        background: $boost;
-        height: 3;
-        width: 60%;
-        margin: 1 0 0 0;
-        padding: 0;
-        border: tall $background;
-        dock: top;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        yield Input(placeholder="Enter search text...", value=self.app.last_search)
-
-    def on_mount(self) -> None:
-        input_widget = self.query_one(Input)
-        input_widget.focus()
-        input_widget.cursor_position = len(self.app.last_search)
-
-    def on_input_changed(self, event: Input.Changed) -> None:
-        self.app.handle_search_change(event.value)
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        self.app.handle_search_submit()
-
 
 class FilterDialog(Container):
     DEFAULT_CSS = """
@@ -72,13 +45,15 @@ class FilterDialog(Container):
     """
 
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="Enter filter text...", value=self.app.last_filter)
+        placeholder = "Enter search text..." if self.app.dialog_mode == "search" else "Enter filter text..."
+        value = self.app.last_search if self.app.dialog_mode == "search" else self.app.last_filter
+        yield Input(placeholder=placeholder, value=value)
 
     def on_mount(self) -> None:
         input_widget = self.query_one(Input)
         input_widget.focus()
-        # Position cursor at end of text
-        input_widget.cursor_position = len(self.app.last_filter)
+        value = self.app.last_search if self.app.dialog_mode == "search" else self.app.last_filter
+        input_widget.cursor_position = len(value)
 
     def on_input_changed(self, event: Input.Changed) -> None:
         self.app.handle_input_change(event.value)
@@ -139,7 +114,9 @@ class NotesApp(App):
     def __init__(self):
         super().__init__()
         self.notes_api = api.NoteAPI("http://localhost:37240")
-        self.last_search = ""  # Add this line
+        self.last_search = ""
+        self.last_filter = ""
+        self.dialog_mode = "filter"  # Can be "filter" or "search"
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
@@ -378,43 +355,63 @@ class NotesApp(App):
 
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
+        self.dialog_mode = "filter"
         await self.mount(FilterDialog())
 
-    def handle_search_change(self, value: str) -> None:
-        """Handle input changes in the search dialog."""
-        self.last_search = value
-        if not value:
-            self.refresh_notes()
-            return
+    def handle_input_change(self, value: str) -> None:
+        """Handle input changes in the filter dialog."""
+        if self.dialog_mode == "search":
+            self.last_search = value
+            if not value:
+                self.refresh_notes()
+                return
 
-        tree = self.query_one("#notes-tree", Tree)
-        tree.clear()
+            tree = self.query_one("#notes-tree", Tree)
+            tree.clear()
 
-        try:
-            # Get search results
-            search_results = self.notes_api.search_notes(value)
-            
-            # Convert search results to TreeNote format
-            tree_notes = [api.TreeNote(id=note.id, title=note.title, content=note.content, children=[]) 
-                         for note in search_results]
-            
-            # Populate tree with results
-            root = tree.root
-            self._populate_tree(tree_notes, root)
-            # Unfold the tree after each search update
-            self._unfold_node(tree.root)
-        except Exception as e:
-            tree.root.add_leaf("Error searching notes: " + str(e))
+            try:
+                # Get search results
+                search_results = self.notes_api.search_notes(value)
+                
+                # Convert search results to TreeNote format
+                tree_notes = [api.TreeNote(id=note.id, title=note.title, content=note.content, children=[]) 
+                             for note in search_results]
+                
+                # Populate tree with results
+                root = tree.root
+                self._populate_tree(tree_notes, root)
+                self._unfold_node(tree.root)
+            except Exception as e:
+                tree.root.add_leaf("Error searching notes: " + str(e))
+        else:
+            # Original filter logic
+            self.last_filter = value
+            if not value:
+                self.refresh_notes()
+                return
 
-    def handle_search_submit(self) -> None:
-        """Handle input submission in the search dialog."""
-        dialog = self.query_one(SearchDialog)
+            tree = self.query_one("#notes-tree", Tree)
+            tree.clear()
+
+            try:
+                notes = self.notes_api.get_notes_tree()
+                filtered_notes = self._filter_notes(notes, value)
+                root = tree.root
+                self._populate_tree(filtered_notes, root)
+                self._unfold_node(tree.root)
+            except Exception as e:
+                tree.root.add_leaf("Error filtering notes: " + str(e))
+
+    def handle_input_submit(self) -> None:
+        """Handle input submission in the dialog."""
+        dialog = self.query_one(FilterDialog)
         if dialog:
             dialog.remove()
 
     async def action_search_notes(self) -> None:
         """Search notes using the API search function."""
-        await self.mount(SearchDialog())
+        self.dialog_mode = "search"
+        await self.mount(FilterDialog())
 
 
 if __name__ == "__main__":
