@@ -42,6 +42,8 @@ class NotesApp(App):
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("r", "refresh", "Refresh"),
+        ("right", "expand_node", "Expand"),
+        ("left", "collapse_node", "Collapse"),
     ]
 
     def __init__(self):
@@ -95,6 +97,18 @@ class NotesApp(App):
     def action_refresh(self) -> None:
         """Refresh the notes tree."""
         self.refresh_notes()
+
+    def action_expand_node(self) -> None:
+        """Expand the selected tree node."""
+        tree = self.query_one("#notes-tree", Tree)
+        if tree.cursor_node:
+            tree.cursor_node.expand()
+
+    def action_collapse_node(self) -> None:
+        """Collapse the selected tree node."""
+        tree = self.query_one("#notes-tree", Tree)
+        if tree.cursor_node:
+            tree.cursor_node.collapse()
 
 if __name__ == "__main__":
     app = NotesApp()
