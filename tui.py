@@ -129,6 +129,8 @@ class NotesApp(App):
         ("F", "toggle_follow", "Follow Mode"),
         ("j", "cursor_down", "Down"),
         ("k", "cursor_up", "Up"),
+        ("tab", "fold_cycle", "Cycle Fold"),
+        ("shift+tab", "fold_cycle_reverse", "Cycle Fold Reverse"),
     ]
 
     follow_mode = reactive(True)
@@ -139,6 +141,7 @@ class NotesApp(App):
         self.last_search = ""
         self.last_filter = ""
         self.dialog_mode = "filter"  # Can be "filter" or "search"
+        self.current_fold_level = 0  # Track current fold level
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
@@ -308,10 +311,77 @@ class NotesApp(App):
         for child in node.children:
             self._unfold_node(child)
 
+    def _get_node_level(self, node: TreeNode) -> int:
+        """Get the level of a node in the tree (root is 0)."""
+        level = 0
+        current = node
+        while current.parent is not None:
+            level += 1
+            current = current.parent
+        return level
+
+    def _fold_to_level(self, node: TreeNode, target_level: int) -> None:
+        """Fold/unfold nodes to show up to target_level."""
+        current_level = self._get_node_level(node)
+        
+        # Always process the root node
+        if current_level <= target_level:
+            node.expand()
+            # Process children recursively
+            for child in node.children:
+                self._fold_to_level(child, target_level)
+        else:
+            node.collapse()
+
+    def action_fold_cycle(self) -> None:
+        """Cycle through fold levels (expanding)."""
+        tree = self.query_one("#notes-tree", Tree)
+        
+        # Calculate next fold level
+        if self.current_fold_level == 0:
+            self.current_fold_level = 1
+        else:
+            self.current_fold_level *= 2
+
+        # If we've gone too deep, reset to 0
+        max_depth = self._get_max_depth(tree.root)
+        if self.current_fold_level > max_depth:
+            self.current_fold_level = 0
+            tree.root.collapse_all()
+            return
+
+        # Apply the new fold level
+        self._fold_to_level(tree.root, self.current_fold_level)
+        
+        # Notify user
+        self.notify(f"Fold level: {self.current_fold_level}")
+
+    def action_fold_cycle_reverse(self) -> None:
+        """Cycle through fold levels (collapsing)."""
+        tree = self.query_one("#notes-tree", Tree)
+        
+        # Calculate previous fold level
+        if self.current_fold_level <= 1:
+            self.current_fold_level = 0
+            tree.root.collapse_all()
+        else:
+            self.current_fold_level //= 2
+            self._fold_to_level(tree.root, self.current_fold_level)
+        
+        # Notify user
+        self.notify(f"Fold level: {self.current_fold_level}")
+
+    def _get_max_depth(self, node: TreeNode) -> int:
+        """Get the maximum depth of the tree."""
+        if not node.children:
+            return self._get_node_level(node)
+        return max(self._get_max_depth(child) for child in node.children)
+
     def action_unfold_tree(self) -> None:
         """Unfold the entire tree."""
         tree = self.query_one("#notes-tree", Tree)
         self._unfold_node(tree.root)
+        self.current_fold_level = self._get_max_depth(tree.root)
 
     def action_cursor_down(self) -> None:
         """Move cursor down in the tree."""
