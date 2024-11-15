@@ -307,6 +307,9 @@ class NotesApp(App):
         dialog = self.query_one(FilterDialog)
         if dialog:
             dialog.remove()
+            # Unfold the entire tree after filtering
+            tree = self.query_one("#notes-tree", Tree)
+            self._unfold_node(tree.root)
 
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
