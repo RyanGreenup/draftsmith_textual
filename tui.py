@@ -143,14 +143,14 @@ class NotesApp(App):
         """Get the titles of all expanded nodes in the tree."""
         expanded = set()
         if node.is_expanded:
-            expanded.add(node.label)
+            expanded.add(str(node.label))
             for child in node.children:
                 expanded.update(self._get_expanded_nodes(child))
         return expanded
 
     def _restore_expanded_nodes(self, node: TreeNode, expanded_nodes: set[str]) -> None:
         """Restore the expanded state of nodes."""
-        if node.label in expanded_nodes:
+        if str(node.label) in expanded_nodes:
             node.expand()
         for child in node.children:
             self._restore_expanded_nodes(child, expanded_nodes)
