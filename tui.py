@@ -299,6 +299,8 @@ class NotesApp(App):
             filtered_notes = self._filter_notes(notes, value)
             root = tree.root
             self._populate_tree(filtered_notes, root)
+            # Unfold the tree after each filter update
+            self._unfold_node(tree.root)
         except Exception as e:
             tree.root.add_leaf("Error filtering notes: " + str(e))
 
@@ -307,9 +309,6 @@ class NotesApp(App):
         dialog = self.query_one(FilterDialog)
         if dialog:
             dialog.remove()
-            # Unfold the entire tree after filtering
-            tree = self.query_one("#notes-tree", Tree)
-            self._unfold_node(tree.root)
 
     async def action_filter_notes(self) -> None:
         """Filter notes based on fuzzy string matching."""
