@@ -103,13 +103,13 @@ class NotesApp(App):
         """Load the notes tree when the app starts."""
         self.refresh_notes()
 
-    def _filter_notes(self, notes: List[api.TreeNote], query: str, max_distance: int = 3) -> List[api.TreeNote]:
-        """Filter notes based on fuzzy string matching."""
+    def _filter_notes(self, notes: List[api.TreeNote], query: str) -> List[api.TreeNote]:
+        """Filter notes based on presence of all query characters."""
         if not query:
             return notes
             
         filtered = []
-        query = query.lower()
+        query_chars = set(query.lower())
         
         for note in notes:
             current_note = api.TreeNote(
@@ -119,8 +119,9 @@ class NotesApp(App):
                 children=[]
             )
             
-            # Check if current note matches
-            title_matches = distance(query, note.title.lower()) <= max_distance
+            # Check if all query characters are present in the title
+            title_chars = set(note.title.lower())
+            title_matches = all(char in title_chars for char in query_chars)
             
             # Recursively filter children
             filtered_children = self._filter_notes(note.children, query) if note.children else []
