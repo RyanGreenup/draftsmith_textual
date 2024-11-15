@@ -78,10 +78,12 @@ class NotesApp(App):
     def _populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
-            # Use add_leaf instead of add
-            node = parent.add_leaf(note.title, data=note)
+            # Create a node for this note
+            node = parent.add(note.title, data=note, expand=True)  # expand=True shows all levels
+            # Recursively add all children
             if note.children:
-                self._populate_tree(note.children, node)
+                for child in note.children:
+                    self._populate_tree([child], node)  # Pass each child as a single-item list
 
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
         """Handle note selection."""
