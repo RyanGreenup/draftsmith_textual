@@ -156,20 +156,24 @@ class NotesApp(App):
     ) -> List[api.TreeNote]:
         """Filter notes tree to only include paths to matching IDs."""
         filtered = []
-        
+
         for note in notes:
             current_note = api.TreeNote(
                 id=note.id, title=note.title, content=note.content, children=[]
             )
-            
+
             # Recursively filter children
-            filtered_children = self._filter_notes_by_ids(note.children, matching_ids) if note.children else []
-            
+            filtered_children = (
+                self._filter_notes_by_ids(note.children, matching_ids)
+                if note.children
+                else []
+            )
+
             # Include note if it matches or has matching children
             if note.id in matching_ids or filtered_children:
                 current_note.children = filtered_children
                 filtered.append(current_note)
-                
+
         return filtered
 
     def _filter_notes(
