@@ -158,10 +158,10 @@ class NotesApp(App):
     def refresh_notes(self) -> None:
         """Refresh the notes tree from the API while preserving expanded state."""
         tree = self.query_one("#notes-tree", Tree)
-        
+
         # Store expanded state before clearing
         expanded_nodes = self._get_expanded_nodes(tree.root)
-        
+
         tree.clear()
 
         try:
