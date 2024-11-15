@@ -1,5 +1,9 @@
+import tempfile
+import subprocess
+import os
 from datetime import datetime
 from typing import Optional
+from pathlib import Path
 
 from rich.markdown import Markdown
 from rich.text import Text
@@ -44,6 +48,7 @@ class NotesApp(App):
         ("r", "refresh", "Refresh"),
         ("right", "expand_node", "Expand"),
         ("left", "collapse_node", "Collapse"),
+        ("e", "edit_note", "Edit Note"),
     ]
 
     def __init__(self):
@@ -109,6 +114,44 @@ class NotesApp(App):
         tree = self.query_one("#notes-tree", Tree)
         if tree.cursor_node:
             tree.cursor_node.collapse()
+
+    def action_edit_note(self) -> None:
+        """Edit the current note in an external editor."""
+        tree = self.query_one("#notes-tree", Tree)
+        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            return
+
+        note = tree.cursor_node.data
+        
+        # Create a temporary file with the note content
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as tmp:
+            tmp.write(note.content or '')
+            tmp_path = Path(tmp.name)
+
+        # Open the editor (using $EDITOR or falling back to vim)
+        editor = os.environ.get('EDITOR', 'vim')
+        try:
+            subprocess.run([editor, str(tmp_path)], check=True)
+            
+            # Read the edited content
+            with open(tmp_path) as f:
+                new_content = f.read()
+
+            # Update the note via API
+            self.notes_api.update_note(note.id, api.UpdateNoteRequest(content=new_content))
+            
+            # Update the viewer
+            viewer = self.query_one("#note-viewer", NoteViewer)
+            viewer.display_note(new_content)
+            
+            # Refresh the tree to show any title changes
+            self.refresh_notes()
+            
+        except subprocess.CalledProcessError as e:
+            self.notify("Failed to edit note", severity="error")
+        finally:
+            # Clean up temp file
+            tmp_path.unlink()
 
 if __name__ == "__main__":
     app = NotesApp()
