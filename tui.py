@@ -343,6 +343,8 @@ class NotesApp(App):
                 # Suspend the TUI, restore terminal state
                 with self.suspend():
                     result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
+                # Refresh footer after resuming
+                self.query_one(Footer).refresh()
             else:
                 # Run async without suspending TUI
                 process = await asyncio.create_subprocess_exec(
