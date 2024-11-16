@@ -457,7 +457,9 @@ class NotesApp(App):
                     sock.connect(self.socket_path)
                     message = json.dumps({"command": "set_note", "note_id": note_id})
                     sock.sendall(message.encode())
-                    self.notify("Connected to GUI preview")
+                    # Only notify if this was triggered by manual action (not auto-sync)
+                    if not self.auto_sync_gui:
+                        self.notify("Connected to GUI preview")
                 except FileNotFoundError:
                     self.notify(
                         f"GUI preview not running. Start it with: python markdown_preview.py --socket-path {self.socket_path}",
