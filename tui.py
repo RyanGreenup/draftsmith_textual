@@ -165,6 +165,7 @@ class NotesApp(App):
         ("x", "mark_for_move", "Mark"),
         ("p", "paste_as_children", "Paste"),
         ("escape", "clear_marks", "Clear marks"),
+        ("n", "new_note", "New Note"),
         # System
         ("q", "quit", "Quit"),
     ]
@@ -688,6 +689,25 @@ class NotesApp(App):
             self._apply_search(self.last_search)
         else:
             self.refresh_notes()
+
+    def action_new_note(self) -> None:
+        """Create a new note."""
+        try:
+            # Create a new note with default title and empty content
+            title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
+            new_note = self.notes_api.create_note(api.CreateNoteRequest(title=title, content=""))
+            
+            # Refresh the tree view
+            self.refresh_notes()
+            
+            # Notify user
+            self.notify(f"Created new note: {title}")
+            
+            # Start editing the new note immediately
+            self.app.set_timer(0.1, self.action_edit_note)
+            
+        except Exception as e:
+            self.notify(f"Error creating note: {str(e)}", severity="error")
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
