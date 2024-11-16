@@ -568,6 +568,17 @@ class NotesApp(App):
     def action_toggle_flat_view(self) -> None:
         """Toggle between flat and hierarchical view for filtered results."""
         self.flat_view = not self.flat_view
+        
+        # Immediately refresh the view while preserving any active search/filter
+        if self.last_search:
+            self._apply_search(self.last_search)
+        elif self.last_filter:
+            self._apply_filter(self.last_filter)
+        else:
+            # If no search/filter active, just refresh the normal tree
+            self.refresh_notes()
+        
+        self.notify(f"{'Flat' if self.flat_view else 'Hierarchical'} view")
 
     def action_connect_gui(self) -> None:
         """Connect to GUI preview."""
@@ -584,8 +595,6 @@ class NotesApp(App):
                 self._apply_search(self.last_search)
             else:
                 self._apply_filter(self.last_filter)
-
-        self.notify(f"{'Flat' if self.flat_view else 'Hierarchical'} view")
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
