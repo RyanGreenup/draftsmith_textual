@@ -7,7 +7,7 @@ A terminal user interface for Draftsmith with markdown preview support.
 Install using pipx:
 
 ```bash
-pipx install draftsmith-tui
+pipx install git+https://github.com/RyanGreenup/draftsmith_css
 ```
 
 ## Usage
@@ -41,7 +41,16 @@ ds-preview --help
 
 Common options include:
 - `--api-scheme`: HTTP scheme (default: http)
-- `--api-host`: API host (default: localhost) 
+- `--api-host`: API host (default: localhost)
 - `--api-port`: API port (default: 37240)
 - `--socket-path`: Socket path for preview communication
+
+
+## Development
+
+```
+git clone https://github.com/RyanGreenup/
+cd draftsmith_css
+
+```
 

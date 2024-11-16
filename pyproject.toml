@@ -8,13 +8,18 @@ readme = "README.md"
 packages = [{include = "*.py"}]
 
 [tool.poetry.scripts]
-ds-tui = "main:main"
-ds-preview = "markdown_preview:main"
+ds-tui = "main:app"
+ds-preview = "markdown_preview:app"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.14"
 textual = "^0.85.2"
 python-levenshtein = "^0.26.1"
+pyside6 = "^6.8.0.2"
+rich = "^13.9.4"
+typer = "^0.13.0"
+pydantic = "^2.9.2"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.3"

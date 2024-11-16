@@ -18,10 +18,14 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     # Construct the command with string arguments
     cmd = [
         "ds-preview",
-        "--socket-path", str(socket_path),
-        "--api-scheme", str(scheme),
-        "--api-host", str(host),
-        "--api-port", str(port)
+        "--socket-path",
+        str(socket_path),
+        "--api-scheme",
+        str(scheme),
+        "--api-host",
+        str(host),
+        "--api-port",
+        str(port),
     ]
 
     if dark_mode:
@@ -76,6 +80,7 @@ def main(
 
 app = typer.Typer()
 
+
 @app.command()
 def main(
     api_scheme: str = typer.Option(
@@ -111,6 +116,7 @@ def main(
 
     app = NotesApp(base_url=base_url, socket_path=str(socket_path))
     app.run()
+
 
 if __name__ == "__main__":
     app()
