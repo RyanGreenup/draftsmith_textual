@@ -5,21 +5,23 @@ import os
 from pathlib import Path
 
 
-def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False):
+def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False) -> int:
     """
     Launch the GUI preview in the background, discarding output.
+    Returns the process ID.
     """
-    # Construct the command
+    # Extract URL components
+    scheme = base_url.split("://")[0]
+    host = base_url.split("://")[1].split(":")[0]
+    port = base_url.split(":")[-1]
+
+    # Construct the command with string arguments
     cmd = [
         "ds-preview",
-        "--socket-path",
-        socket_path,
-        "--api-scheme",
-        base_url.split("://")[0],
-        "--api-host",
-        base_url.split("://")[1].split(":")[0],
-        "--api-port",
-        base_url.split(":")[-1],
+        "--socket-path", str(socket_path),
+        "--api-scheme", str(scheme),
+        "--api-host", str(host),
+        "--api-port", str(port)
     ]
 
     if dark_mode:
