@@ -2,6 +2,7 @@ import typer
 from tui import NotesApp
 import subprocess
 import os
+import sys
 from pathlib import Path
 
 
@@ -15,9 +16,14 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     host = base_url.split("://")[1].split(":")[0]
     port = base_url.split(":")[-1]
 
+    # Get the directory containing this script
+    script_dir = Path(__file__).parent.resolve()
+    preview_script = script_dir / "markdown_preview.py"
+
     # Construct the command with string arguments
     cmd = [
-        "ds-preview",
+        sys.executable,
+        str(preview_script),
         "--socket-path",
         str(socket_path),
         "--api-scheme",
