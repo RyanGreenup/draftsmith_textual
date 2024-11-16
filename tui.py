@@ -166,6 +166,7 @@ class NotesApp(App):
         ("p", "paste_as_children", "Paste"),
         ("escape", "clear_marks", "Clear marks"),
         ("n", "new_note", "New Note"),
+        ("d", "delete_note", "Delete"),
         # System
         ("q", "quit", "Quit"),
     ]
@@ -689,6 +690,31 @@ class NotesApp(App):
             self._apply_search(self.last_search)
         else:
             self.refresh_notes()
+
+    def action_delete_note(self) -> None:
+        """Delete the current note after confirmation."""
+        tree = self.query_one("#notes-tree", Tree)
+        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            self.notify("No note selected", severity="warning")
+            return
+
+        note = tree.cursor_node.data
+        try:
+            # Delete the note
+            self.notes_api.delete_note(note.id)
+            
+            # Clear the viewer
+            viewer = self.query_one("#note-viewer", NoteViewer)
+            viewer.display_note(None)
+            
+            # Refresh the tree view
+            self.refresh_notes()
+            
+            # Notify user
+            self.notify(f"Deleted note: {note.title}")
+            
+        except Exception as e:
+            self.notify(f"Error deleting note: {str(e)}", severity="error")
 
     def action_new_note(self) -> None:
         """Create a new note."""
