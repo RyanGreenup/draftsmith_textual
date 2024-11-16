@@ -6,16 +6,8 @@ from pathlib import Path
 
 def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False):
     """
-    Launch the GUI preview in the background, redirecting output to a log file.
+    Launch the GUI preview in the background, discarding output.
     """
-    # Create log directory if it doesn't exist
-    log_dir = Path.home() / ".local" / "share" / "draftsmith" / "logs"
-    log_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Open log files for stdout and stderr
-    stdout_log = open(log_dir / "markdown_preview.log", "a")
-    stderr_log = open(log_dir / "markdown_preview.error.log", "a")
-    
     # Construct the command
     cmd = [
         "python", 
@@ -33,11 +25,11 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     if dark_mode:
         cmd.append("--dark")
     
-    # Launch the process
+    # Launch the process with output discarded
     process = subprocess.Popen(
         cmd,
-        stdout=stdout_log,
-        stderr=stderr_log,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
         start_new_session=True  # This detaches the process
     )
     
