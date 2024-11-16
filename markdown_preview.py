@@ -8,6 +8,7 @@ import os
 import json
 from pathlib import Path
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 
 # Import QWebEngineUrlScheme before any other WebEngine modules
 from PySide6.QtWebEngineCore import QWebEngineUrlScheme, QWebEngineUrlRequestJob
@@ -47,8 +48,14 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
         self.base_url = base_url
+        # Create a thread pool for concurrent asset fetching
+        self.thread_pool = ThreadPoolExecutor(max_workers=4)
 
     def requestStarted(self, job):
+        # Launch the request handling in a separate thread
+        self.thread_pool.submit(self._handle_request, job)
+
+    def _handle_request(self, job):
         url = job.requestUrl()
         print(f"AssetUrlSchemeHandler.requestStarted called with URL: {url.toString()}")
 
@@ -276,6 +283,9 @@ class MarkdownPreviewApp(QMainWindow):
     def closeEvent(self, event):
         """Handle application closure."""
         self.cleanup_ipc()
+        # Shutdown the thread pool in the scheme handler
+        if hasattr(self, "scheme_handler"):
+            self.scheme_handler.thread_pool.shutdown(wait=False)
         super().closeEvent(event)
 
     def inject_resources(self, html_content: str) -> str:
