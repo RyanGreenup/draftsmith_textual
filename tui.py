@@ -2,6 +2,8 @@ import tempfile
 import subprocess
 import os
 import asyncio
+import socket
+import json
 from datetime import datetime
 from typing import Optional, List
 from Levenshtein import distance
@@ -157,6 +159,7 @@ class NotesApp(App):
         ("F", "toggle_follow", "Follow"),
         ("r", "refresh", "Refresh"),
         ("f5", "toggle_flat_view", "Flat View"),
+        ("g", "connect_gui", "GUI Preview"),
         # System
         ("q", "quit", "Quit"),
     ]
@@ -423,6 +426,35 @@ class NotesApp(App):
         self._unfold_node(tree.root)
         self.current_fold_level = self._get_max_depth(tree.root)
 
+    def connect_to_gui(self) -> None:
+        """Connect to the GUI preview via Unix Domain Socket."""
+        socket_path = "/tmp/markdown_preview.sock"  # Use same default path
+        
+        try:
+            # Get current note ID
+            tree = self.query_one("#notes-tree", Tree)
+            if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+                self.notify("No note selected", severity="warning")
+                return
+                
+            note = tree.cursor_node.data
+            note_id = note.id
+            
+            # Try to connect and send the note ID
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                try:
+                    sock.connect(socket_path)
+                    message = json.dumps({"command": "set_note", "note_id": note_id})
+                    sock.sendall(message.encode())
+                    self.notify("Connected to GUI preview")
+                except FileNotFoundError:
+                    self.notify("GUI preview not running. Start it with: python markdown_preview.py --socket-path /tmp/markdown_preview.sock", severity="error")
+                except ConnectionRefusedError:
+                    self.notify("Could not connect to GUI preview", severity="error")
+                
+        except Exception as e:
+            self.notify(f"Error connecting to GUI preview: {str(e)}", severity="error")
+
     def action_cursor_down(self) -> None:
         """Move cursor down in the tree."""
         tree = self.query_one("#notes-tree", Tree)
@@ -530,6 +562,10 @@ class NotesApp(App):
     def action_toggle_flat_view(self) -> None:
         """Toggle between flat and hierarchical view for filtered results."""
         self.flat_view = not self.flat_view
+
+    def action_connect_gui(self) -> None:
+        """Connect to GUI preview."""
+        self.connect_to_gui()
 
         # Only refresh if we're currently filtering/searching
         if self.last_filter or self.last_search:
