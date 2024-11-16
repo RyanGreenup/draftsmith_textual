@@ -95,31 +95,32 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
             response = requests.get(api_url, stream=True, timeout=10)
 
             if response.status_code == 200:
-                content_type = response.headers.get(
-                    "Content-Type", "application/octet-stream"
-                )
-                data = response.content
-
-                if not data:
-                    print(f"Error: Empty response for asset {asset_id}")
+                content_type = response.headers.get("Content-Type", "application/octet-stream")
+                
+                # Create a QBuffer to store the streamed data
+                buffer = QBuffer(parent=self)
+                if not buffer.open(QIODevice.WriteOnly):
+                    print(f"Error: Could not open buffer for writing asset {asset_id}")
                     job.fail(QWebEngineUrlRequestJob.RequestFailed)
                     return
 
-                # Prepare the data to be read by the web engine
-                buffer = QByteArray(data)
-                device = QBuffer(parent=self)  # Ensure proper cleanup
-                device.setData(buffer)
-                if not device.open(QIODevice.ReadOnly):
-                    print(f"Error: Could not open buffer for asset {asset_id}")
+                # Stream the data in chunks
+                chunk_size = 8192  # 8KB chunks
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        buffer.write(QByteArray(chunk))
+
+                # Prepare buffer for reading
+                buffer.close()
+                if not buffer.open(QIODevice.ReadOnly):
+                    print(f"Error: Could not open buffer for reading asset {asset_id}")
                     job.fail(QWebEngineUrlRequestJob.RequestFailed)
                     return
 
                 # Send the data back to the web view
-                job.reply(content_type.encode(), device)
+                job.reply(content_type.encode(), buffer)
             else:
-                print(
-                    f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}"
-                )
+                print(f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}")
                 job.fail(QWebEngineUrlRequestJob.RequestFailed)
 
         except requests.Timeout:
