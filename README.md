@@ -39,7 +39,7 @@ ds-tui
 Both commands support various options:
 
 ```bash
-ds-tui --help
+EDITOR=nvim GUI_EDITOR=neovide ds-tui --help
 ds-preview --help
 ```
 
@@ -49,6 +49,8 @@ Common options include:
 - `--api-port`: API port (default: 37240)
 - `--socket-path`: Socket path for preview communication
 
+
+The `GUI_EDITOR` environment variable can be used to specify the GUI editor to use when opening a note with <kbd>E</kbd>.
 
 ## Development
 
