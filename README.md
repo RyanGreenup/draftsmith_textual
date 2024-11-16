@@ -1,6 +1,6 @@
 # Draftsmith TUI
 
-A terminal user interface for Draftsmith with markdown preview support.
+A terminal user interface for Draftsmith PyQt markdown preview support.
 
 ## Installation
 
@@ -9,6 +9,10 @@ Install using pipx:
 ```bash
 pipx install git+https://github.com/RyanGreenup/draftsmith_css
 ```
+
+## Screenshot
+
+![Screenshot](./assets/screenshot.png)
 
 ## Usage
 
@@ -48,9 +52,10 @@ Common options include:
 
 ## Development
 
-```
+```bash
 git clone https://github.com/RyanGreenup/
 cd draftsmith_css
-
+poetry run python markdown_preview.py --socket-path /tmp/md.sock 2>/dev/null & disown
+poetry run python main.py --socket-path /tmp/md.sock
 ```
 
