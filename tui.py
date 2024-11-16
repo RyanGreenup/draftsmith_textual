@@ -561,7 +561,7 @@ class NotesApp(App):
                 # For hierarchical view, preserve paths but order matched leaves by search order
                 matching_ids = {note.id: idx for idx, note in enumerate(search_results)}
                 notes = self.notes_api.get_notes_tree()
-                filtered_notes = self._filter_notes_by_ids(notes, matching_ids.keys())
+                filtered_notes = self._filter_notes_by_ids(notes, set(matching_ids.keys()))
 
                 # Sort the leaf nodes based on search order
                 def sort_by_search_order(
