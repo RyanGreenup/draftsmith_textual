@@ -89,6 +89,7 @@ class NotesApp(App):
     last_filter: str = ""  # Store the last filter query
     last_search: str = ""  # Store the last search query
     dialog_mode: str = "filter"  # Current dialog mode
+    marked_for_move: set[int] = set()  # Store IDs of notes marked for moving
 
     CSS = """
     Tree {
@@ -161,6 +162,9 @@ class NotesApp(App):
         ("f5", "toggle_flat_view", "Flat View"),
         ("g", "connect_gui", "GUI Preview"),
         ("G", "toggle_auto_sync", "Toggle Auto-sync"),
+        ("x", "mark_for_move", "Mark"),
+        ("p", "paste_as_children", "Paste"),
+        ("escape", "clear_marks", "Clear marks"),
         # System
         ("q", "quit", "Quit"),
     ]
@@ -295,15 +299,18 @@ class NotesApp(App):
     ) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
+            # Create label with visual indicator if note is marked
+            label = f"[red]*[/red] {note.title}" if note.id in self.marked_for_move else note.title
+            
             # Create a node for this note
             if isinstance(parent, Tree):
-                node = parent.root.add(note.title, data=note)
+                node = parent.root.add(label, data=note)
             else:
                 # Use add_leaf for nodes without children, add for nodes with children
                 if note.children:
-                    node = parent.add(note.title, data=note)
+                    node = parent.add(label, data=note)
                 else:
-                    node = parent.add_leaf(note.title, data=note)
+                    node = parent.add_leaf(label, data=note)
             # Recursively add all children
             if note.children:
                 for child in note.children:
@@ -605,6 +612,58 @@ class NotesApp(App):
                 self._apply_search(self.last_search)
             else:
                 self._apply_filter(self.last_filter)
+
+    def action_mark_for_move(self) -> None:
+        """Mark current note for moving."""
+        tree = self.query_one("#notes-tree", Tree)
+        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            self.notify("No note selected", severity="warning")
+            return
+
+        note = tree.cursor_node.data
+        if note.id in self.marked_for_move:
+            self.marked_for_move.remove(note.id)
+            self.notify(f"Unmarked note: {note.title}")
+        else:
+            self.marked_for_move.add(note.id)
+            self.notify(f"Marked note: {note.title}")
+
+    def action_paste_as_children(self) -> None:
+        """Attach marked notes as children to current note."""
+        if not self.marked_for_move:
+            self.notify("No notes marked for moving", severity="warning")
+            return
+
+        tree = self.query_one("#notes-tree", Tree)
+        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            self.notify("No target note selected", severity="warning")
+            return
+
+        target_note = tree.cursor_node.data
+
+        try:
+            for note_id in self.marked_for_move:
+                # First detach from current parent
+                try:
+                    self.notes_api.detach_note_from_parent(note_id)
+                except Exception:
+                    # Ignore error if note doesn't have a parent
+                    pass
+                
+                # Then attach to new parent
+                self.notes_api.attach_note_to_parent(note_id, target_note.id)
+            
+            self.notify(f"Moved {len(self.marked_for_move)} notes as children of: {target_note.title}")
+            self.marked_for_move.clear()
+            self.refresh_notes()
+        except Exception as e:
+            self.notify(f"Error moving notes: {str(e)}", severity="error")
+
+    def action_clear_marks(self) -> None:
+        """Clear all marked notes."""
+        count = len(self.marked_for_move)
+        self.marked_for_move.clear()
+        self.notify(f"Cleared {count} marked notes")
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
