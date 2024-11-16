@@ -163,9 +163,9 @@ class NotesApp(App):
 
     follow_mode = reactive(True)
 
-    def __init__(self):
+    def __init__(self, base_url: str = "http://localhost:37240"):
         super().__init__()
-        self.notes_api = api.NoteAPI("http://localhost:37240")
+        self.notes_api = api.NoteAPI(base_url)
         self.last_search = ""
         self.last_filter = ""
         self.dialog_mode = "filter"  # Can be "filter" or "search"
