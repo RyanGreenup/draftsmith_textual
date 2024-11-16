@@ -168,7 +168,11 @@ class NotesApp(App):
     follow_mode = reactive(True)
     auto_sync_gui = reactive(False)
 
-    def __init__(self, base_url: str = "http://localhost:37240", socket_path: str = "/tmp/markdown_preview.sock"):
+    def __init__(
+        self,
+        base_url: str = "http://localhost:37240",
+        socket_path: str = "/tmp/markdown_preview.sock",
+    ):
         super().__init__()
         self.notes_api = api.NoteAPI(base_url)
         self.last_search = ""
@@ -314,7 +318,7 @@ class NotesApp(App):
             if note and isinstance(note, api.TreeNote):
                 viewer = self.query_one("#note-viewer", NoteViewer)
                 viewer.display_note(note.content)
-                
+
                 # Auto-sync to GUI if enabled
                 if self.auto_sync_gui:
                     self.connect_to_gui()
@@ -438,13 +442,15 @@ class NotesApp(App):
         try:
             # Get current note ID
             tree = self.query_one("#notes-tree", Tree)
-            if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            if not tree.cursor_node or not isinstance(
+                tree.cursor_node.data, api.TreeNote
+            ):
                 self.notify("No note selected", severity="warning")
                 return
-                
+
             note = tree.cursor_node.data
             note_id = note.id
-            
+
             # Try to connect and send the note ID
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
                 try:
@@ -453,10 +459,13 @@ class NotesApp(App):
                     sock.sendall(message.encode())
                     self.notify("Connected to GUI preview")
                 except FileNotFoundError:
-                    self.notify(f"GUI preview not running. Start it with: python markdown_preview.py --socket-path {self.socket_path}", severity="error")
+                    self.notify(
+                        f"GUI preview not running. Start it with: python markdown_preview.py --socket-path {self.socket_path}",
+                        severity="error",
+                    )
                 except ConnectionRefusedError:
                     self.notify("Could not connect to GUI preview", severity="error")
-                
+
         except Exception as e:
             self.notify(f"Error connecting to GUI preview: {str(e)}", severity="error")
 
@@ -567,7 +576,7 @@ class NotesApp(App):
     def action_toggle_flat_view(self) -> None:
         """Toggle between flat and hierarchical view for filtered results."""
         self.flat_view = not self.flat_view
-        
+
         # Immediately refresh the view while preserving any active search/filter
         if self.last_search:
             self._apply_search(self.last_search)
@@ -576,7 +585,7 @@ class NotesApp(App):
         else:
             # If no search/filter active, just refresh the normal tree
             self.refresh_notes()
-        
+
         self.notify(f"{'Flat' if self.flat_view else 'Hierarchical'} view")
 
     def action_connect_gui(self) -> None:

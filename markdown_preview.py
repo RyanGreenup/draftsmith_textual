@@ -108,7 +108,12 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
 class MarkdownPreviewApp(QMainWindow):
     update_note_id = Signal(int)
 
-    def __init__(self, base_url: str, initial_note_id: Optional[int] = None, socket_path: Optional[str] = None):
+    def __init__(
+        self,
+        base_url: str,
+        initial_note_id: Optional[int] = None,
+        socket_path: Optional[str] = None,
+    ):
         super().__init__()
 
         self.note_api = NoteAPI(base_url)
@@ -158,7 +163,7 @@ class MarkdownPreviewApp(QMainWindow):
 
         # Fetch and populate note IDs
         self.populate_combo_box()
-        
+
         # Set initial note if provided
         if initial_note_id is not None:
             index = self.combo_box.findData(initial_note_id)
@@ -167,7 +172,7 @@ class MarkdownPreviewApp(QMainWindow):
 
         # Connect the update signal
         self.update_note_id.connect(self._update_note_id)
-        
+
         # Set up IPC if socket path is provided
         if socket_path:
             self.setup_ipc_server(socket_path)
@@ -211,18 +216,20 @@ class MarkdownPreviewApp(QMainWindow):
     def setup_ipc_server(self, socket_path: str):
         """Set up the IPC server using Unix Domain Socket."""
         self.socket_path = socket_path
-        
+
         # Remove existing socket file if it exists
         if os.path.exists(socket_path):
             os.unlink(socket_path)
-        
+
         # Create the socket server
         self.ipc_server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.ipc_server.bind(socket_path)
         self.ipc_server.listen(1)
-        
+
         # Start listening thread
-        self.ipc_thread = threading.Thread(target=self._handle_ipc_connections, daemon=True)
+        self.ipc_thread = threading.Thread(
+            target=self._handle_ipc_connections, daemon=True
+        )
         self.ipc_thread.start()
 
     def _handle_ipc_connections(self):
@@ -235,7 +242,7 @@ class MarkdownPreviewApp(QMainWindow):
                         data = conn.recv(1024)
                         if not data:
                             break
-                        
+
                         try:
                             message = json.loads(data.decode())
                             if message.get("command") == "set_note":
@@ -261,9 +268,9 @@ class MarkdownPreviewApp(QMainWindow):
 
     def cleanup_ipc(self):
         """Clean up IPC resources."""
-        if hasattr(self, 'ipc_server'):
+        if hasattr(self, "ipc_server"):
             self.ipc_server.close()
-        if hasattr(self, 'socket_path') and os.path.exists(self.socket_path):
+        if hasattr(self, "socket_path") and os.path.exists(self.socket_path):
             os.unlink(self.socket_path)
 
     def closeEvent(self, event):
@@ -433,9 +440,7 @@ def launch_preview(
     """Launch the markdown preview application."""
     app = QApplication(sys.argv)
     window = MarkdownPreviewApp(
-        base_url=base_url,
-        initial_note_id=initial_note_id,
-        socket_path=socket_path
+        base_url=base_url, initial_note_id=initial_note_id, socket_path=socket_path
     )
     if dark_mode:
         window.dark_mode_action.setChecked(True)
@@ -454,11 +459,17 @@ def preview(
     api_port: int = typer.Option(37240, help="API port"),
     id: Optional[int] = typer.Option(None, help="Open specific note by ID"),
     dark: bool = typer.Option(False, help="Start in dark mode"),
-    socket_path: Optional[str] = typer.Option(None, help="Unix Domain Socket path for IPC"),
+    socket_path: Optional[str] = typer.Option(
+        None, help="Unix Domain Socket path for IPC"
+    ),
 ):
     """Launch the markdown preview application with the specified API settings."""
     base_url = f"{api_scheme}://{api_host}:{api_port}"
-    sys.exit(launch_preview(base_url, initial_note_id=id, dark_mode=dark, socket_path=socket_path))
+    sys.exit(
+        launch_preview(
+            base_url, initial_note_id=id, dark_mode=dark, socket_path=socket_path
+        )
+    )
 
 
 if __name__ == "__main__":
