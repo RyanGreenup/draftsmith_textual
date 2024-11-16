@@ -255,7 +255,7 @@ class NoteAPI(API):
 
         response.raise_for_status()
 
-    def note_create(self, title: str, content: str) -> dict:
+    def create_note(self, title: str, content: str) -> dict:
         """
         Create a new note using the API
 
