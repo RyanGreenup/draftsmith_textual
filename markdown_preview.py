@@ -32,7 +32,7 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal
+from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal, QIODevice
 from PySide6.QtGui import QColor, QKeySequence, QAction, QPalette
 from PySide6.QtWebEngineCore import (
     QWebEngineSettings,
@@ -65,6 +65,26 @@ class NotePage(QWebEnginePage):
 
 
 
+class StreamIOWrapper(QIODevice):
+    def __init__(self, stream, parent=None):
+        super().__init__(parent)
+        self._stream = stream
+        self.open(QIODevice.ReadOnly)
+
+    def isSequential(self):
+        return True
+
+    def readData(self, maxlen):
+        data = self._stream.read(maxlen)
+        if data:
+            return data
+        else:
+            return b''  # No more data
+
+    def bytesAvailable(self):
+        return self._stream._fp_bytes_read  # Return number of bytes read so far
+
+
 class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
@@ -81,7 +101,7 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
         print(f"AssetUrlSchemeHandler.requestStarted called with URL: {url.toString()}")
 
         try:
-            # Extract asset ID, handling potential URL encoding
+            # Extract asset ID from the URL path
             asset_id = url.path()[1:]  # Remove the leading '/'
             if not asset_id:
                 print("Error: Empty asset ID")
@@ -91,35 +111,40 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
             api_url = f"{self.base_url}/assets/download/{asset_id}"
             print(f"Fetching asset from API URL: {api_url}")
 
-            # Fetch the asset from the API with timeout
-            response = requests.get(api_url, stream=True, timeout=10)
+            # Get the Range header from the request, if present
+            request_headers = {}
+            range_header = job.requestHeaders().get(b"Range")
+            if range_header:
+                request_headers["Range"] = range_header.data().decode()
 
-            if response.status_code == 200:
-                content_type = response.headers.get(
-                    "Content-Type", "application/octet-stream"
-                )
-                data = response.content
+            # Fetch the asset from the API with streaming enabled
+            response = requests.get(api_url, headers=request_headers, stream=True, timeout=10)
 
-                if not data:
-                    print(f"Error: Empty response for asset {asset_id}")
-                    job.fail(QWebEngineUrlRequestJob.RequestFailed)
-                    return
+            if response.status_code in (200, 206):  # OK or Partial Content
+                content_type = response.headers.get("Content-Type", "application/octet-stream")
+                content_length = response.headers.get("Content-Length")
+                accept_ranges = response.headers.get("Accept-Ranges", "bytes")
+                content_range = response.headers.get("Content-Range")
 
-                # Prepare the data to be read by the web engine
-                buffer = QByteArray(data)
-                device = QBuffer(parent=self)  # Ensure proper cleanup
-                device.setData(buffer)
-                if not device.open(QIODevice.ReadOnly):
-                    print(f"Error: Could not open buffer for asset {asset_id}")
-                    job.fail(QWebEngineUrlRequestJob.RequestFailed)
-                    return
+                # Set response headers
+                headers = {
+                    b"Content-Type": content_type.encode(),
+                    b"Accept-Ranges": accept_ranges.encode(),
+                }
+                if content_length:
+                    headers[b"Content-Length"] = content_length.encode()
+                if content_range:
+                    headers[b"Content-Range"] = content_range.encode()
 
-                # Send the data back to the web view
+                # Create a streaming device to read the response content
+                device = StreamIOWrapper(response.raw, parent=self)
+                # Reply with the content type and device
                 job.reply(content_type.encode(), device)
+                # Set response headers
+                for name, value in headers.items():
+                    job.setResponseHeader(name, value)
             else:
-                print(
-                    f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}"
-                )
+                print(f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}")
                 job.fail(QWebEngineUrlRequestJob.RequestFailed)
 
         except requests.Timeout:
