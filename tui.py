@@ -168,7 +168,7 @@ class NotesApp(App):
     follow_mode = reactive(True)
     auto_sync_gui = reactive(False)
 
-    def __init__(self, base_url: str = "http://localhost:37240"):
+    def __init__(self, base_url: str = "http://localhost:37240", socket_path: str = "/tmp/markdown_preview.sock"):
         super().__init__()
         self.notes_api = api.NoteAPI(base_url)
         self.last_search = ""
@@ -176,6 +176,7 @@ class NotesApp(App):
         self.dialog_mode = "filter"  # Can be "filter" or "search"
         self.current_fold_level = 0  # Track current fold level
         self.flat_view = False  # Track if we're in flat view mode
+        self.socket_path = socket_path  # Store socket path
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
@@ -434,8 +435,6 @@ class NotesApp(App):
 
     def connect_to_gui(self) -> None:
         """Connect to the GUI preview via Unix Domain Socket."""
-        socket_path = "/tmp/markdown_preview.sock"  # Use same default path
-        
         try:
             # Get current note ID
             tree = self.query_one("#notes-tree", Tree)
@@ -449,12 +448,12 @@ class NotesApp(App):
             # Try to connect and send the note ID
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
                 try:
-                    sock.connect(socket_path)
+                    sock.connect(self.socket_path)
                     message = json.dumps({"command": "set_note", "note_id": note_id})
                     sock.sendall(message.encode())
                     self.notify("Connected to GUI preview")
                 except FileNotFoundError:
-                    self.notify("GUI preview not running. Start it with: python markdown_preview.py --socket-path /tmp/markdown_preview.sock", severity="error")
+                    self.notify(f"GUI preview not running. Start it with: python markdown_preview.py --socket-path {self.socket_path}", severity="error")
                 except ConnectionRefusedError:
                     self.notify("Could not connect to GUI preview", severity="error")
                 
