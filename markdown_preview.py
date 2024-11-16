@@ -122,6 +122,8 @@ class MarkdownPreviewApp(QMainWindow):
         socket_path: Optional[str] = None,
     ):
         super().__init__()
+        # Change to this location so css can be loaded
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         self.note_api = NoteAPI(base_url)
         self.dark_mode = False

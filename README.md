@@ -4,17 +4,19 @@ A terminal user interface for Draftsmith PyQt markdown preview support.
 
 ## Installation
 
-Install using pipx:
 
-```bash
-pipx install git+https://github.com/RyanGreenup/draftsmith_textual
-```
+Instllation is via `clone` and `venv` (`pipx` is not supported) [^1]
+
+[^1]: I cannot figure out how to include the css with `pipx` so this is not working yet, if the reader knows how to do this please let me know in an issue or a PR.
 
 ```bash
 git clone --recurse-submodules https://github.com/RyanGreenup/draftsmith_textual
 cd draftsmith_textual
-poetry build
-pipx install . --force
+poetry export -f requirements.txt -o requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py --with-preview
 ```
 
 ## Screenshot
