@@ -10,6 +10,13 @@ Install using pipx:
 pipx install git+https://github.com/RyanGreenup/draftsmith_textual
 ```
 
+```bash
+git clone --recurse-submodules https://github.com/RyanGreenup/draftsmith_textual
+cd draftsmith_textual
+poetry build
+pipx install . --force
+```
+
 ## Screenshot
 
 ![Screenshot](./assets/screenshot.png)
