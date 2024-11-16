@@ -1,10 +1,15 @@
 [tool.poetry]
-name = "draftsmith-textual"
+name = "draftsmith-tui"
 version = "0.1.0"
-description = "A TUI for draftsmith"
+description = "A TUI for draftsmith with markdown preview support"
 authors = ["ryan <exogenesis@protonmail.com>"]
 license = "GPL"
 readme = "README.md"
+packages = [{include = "*.py"}]
+
+[tool.poetry.scripts]
+ds-tui = "main:main"
+ds-preview = "markdown_preview:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"

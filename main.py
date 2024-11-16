@@ -11,8 +11,7 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     """
     # Construct the command
     cmd = [
-        "python",
-        "markdown_preview.py",
+        "ds-preview",
         "--socket-path",
         socket_path,
         "--api-scheme",

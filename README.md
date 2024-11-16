@@ -1,17 +1,47 @@
+# Draftsmith TUI
 
-Start the GUI like so:
+A terminal user interface for Draftsmith with markdown preview support.
 
+## Installation
 
-```
- python markdown_preview.py --socket-path /tmp/markdown_preview.sock
-```
+Install using pipx:
 
-Now start the tui:
-
-```
-python tui.py
-
+```bash
+pipx install draftsmith-tui
 ```
 
-press `g` on a note and it will update in the GUI.
+## Usage
+
+Start the markdown preview window:
+
+```bash
+ds-preview --socket-path /tmp/markdown_preview.sock
+```
+
+In another terminal, start the TUI:
+
+```bash
+ds-tui
+```
+
+### Key Bindings
+
+- Press `g` on a note to update it in the preview window
+- Use arrow keys to navigate
+- Type to filter notes
+
+### Options
+
+Both commands support various options:
+
+```bash
+ds-tui --help
+ds-preview --help
+```
+
+Common options include:
+- `--api-scheme`: HTTP scheme (default: http)
+- `--api-host`: API host (default: localhost) 
+- `--api-port`: API port (default: 37240)
+- `--socket-path`: Socket path for preview communication
 
