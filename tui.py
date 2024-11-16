@@ -160,11 +160,13 @@ class NotesApp(App):
         ("r", "refresh", "Refresh"),
         ("f5", "toggle_flat_view", "Flat View"),
         ("g", "connect_gui", "GUI Preview"),
+        ("G", "toggle_auto_sync", "Toggle Auto-sync"),
         # System
         ("q", "quit", "Quit"),
     ]
 
     follow_mode = reactive(True)
+    auto_sync_gui = reactive(False)
 
     def __init__(self, base_url: str = "http://localhost:37240"):
         super().__init__()
@@ -311,6 +313,10 @@ class NotesApp(App):
             if note and isinstance(note, api.TreeNote):
                 viewer = self.query_one("#note-viewer", NoteViewer)
                 viewer.display_note(note.content)
+                
+                # Auto-sync to GUI if enabled
+                if self.auto_sync_gui:
+                    self.connect_to_gui()
 
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
         """Handle note selection."""
@@ -566,6 +572,11 @@ class NotesApp(App):
     def action_connect_gui(self) -> None:
         """Connect to GUI preview."""
         self.connect_to_gui()
+
+    def action_toggle_auto_sync(self) -> None:
+        """Toggle automatic GUI preview sync."""
+        self.auto_sync_gui = not self.auto_sync_gui
+        self.notify(f"Auto-sync {'enabled' if self.auto_sync_gui else 'disabled'}")
 
         # Only refresh if we're currently filtering/searching
         if self.last_filter or self.last_search:
