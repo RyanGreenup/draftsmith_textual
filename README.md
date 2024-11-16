@@ -10,6 +10,7 @@ Instllation is via `clone` and `venv` (`pipx` is not supported) [^1]
 [^1]: I cannot figure out how to include the css with `pipx` so this is not working yet, if the reader knows how to do this please let me know in an issue or a PR.
 
 ```bash
+cd ~/.local/share/opt/
 git clone --recurse-submodules https://github.com/RyanGreenup/draftsmith_textual
 cd draftsmith_textual
 poetry export -f requirements.txt -o requirements.txt
