@@ -731,6 +731,7 @@ class NotesApp(App):
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
             new_note = self.notes_api.create_note(title=title, content="")
+            new_note_id = new_note["id"]  # Store the new note's ID
 
             # Attach as a Child of the current note
             if not tree.cursor_node or not isinstance(
@@ -740,12 +741,24 @@ class NotesApp(App):
             else:
                 current_note = tree.cursor_node.data
                 # Attach it to the current note
-                self.notes_api.attach_note_to_parent(new_note["id"], current_note.id)
+                self.notes_api.attach_note_to_parent(new_note_id, current_note.id)
                 # Notify user
                 self.notify(f"Created new note as child of: {current_note.title}")
 
             # Refresh the tree view
             self.refresh_notes()
+
+            # Find and focus the new note
+            def focus_new_note(node: TreeNode) -> bool:
+                if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
+                    tree.select_node(node)
+                    return True
+                for child in node.children:
+                    if focus_new_note(child):
+                        return True
+                return False
+
+            focus_new_note(tree.root)
 
             # Start editing the new note immediately
             self.app.set_timer(0.1, self.action_edit_note)
