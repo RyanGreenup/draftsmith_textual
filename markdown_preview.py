@@ -45,6 +45,26 @@ import re
 import os
 
 
+class NotePage(QWebEnginePage):
+    def __init__(self, profile, parent, app):
+        super().__init__(profile, parent)
+        self.app = app
+
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
+        url_str = url.toString()
+        if url_str.startswith("file:///note/"):
+            try:
+                # Extract note ID from path
+                note_id = int(url.path().split("/")[-1])
+                # Update the combo box
+                self.app._update_note_id(note_id)
+                return False  # Prevent actual navigation
+            except (ValueError, IndexError):
+                print(f"Invalid note link: {url_str}")
+        return True  # Allow all other navigation
+
+
+
 class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
@@ -153,7 +173,7 @@ class MarkdownPreviewApp(QMainWindow):
 
         # Create the web view and set its page to use the profile
         self.web_view = QWebEngineView()
-        self.web_page = QWebEnginePage(self.profile, self.web_view)
+        self.web_page = NotePage(self.profile, self.web_view, self)
         self.web_view.setPage(self.web_page)
 
         # Configure WebEngine settings
@@ -421,6 +441,12 @@ class MarkdownPreviewApp(QMainWindow):
         except Exception as e:
             print(f"Error loading resources: {e}")
             return f"<html><body><pre>Error loading resources: {e}</pre><hr>{html_content}</body></html>"
+        # Replace note links to use the file scheme
+        full_html_content = re.sub(
+            r'href="/note/(\d+)"',
+            r'href="file:///note/\1"',
+            full_html_content
+        )
         # Replace asset URLs in the HTML content to use the custom scheme
         full_html_content = full_html_content.replace('src="/m/', 'src="asset:///')
         return full_html_content
