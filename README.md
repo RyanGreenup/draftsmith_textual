@@ -7,7 +7,7 @@ A terminal user interface for Draftsmith PyQt markdown preview support.
 Install using pipx:
 
 ```bash
-pipx install git+https://github.com/RyanGreenup/draftsmith_css
+pipx install git+https://github.com/RyanGreenup/draftsmith_textual
 ```
 
 ## Screenshot
