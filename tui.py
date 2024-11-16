@@ -751,9 +751,12 @@ class NotesApp(App):
             # Find and focus the new note
             def focus_new_note(node: TreeNode) -> bool:
                 if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
-                    node.expand()  # Ensure parent nodes are expanded
-                    tree.cursor_node = node  # Set cursor directly to the new node
+                    parent = node.parent
+                    while parent and parent != tree.root:
+                        parent.expand()
+                        parent = parent.parent
                     tree.select_node(node)  # Select the node
+                    tree.focus()  # Ensure tree has focus
                     return True
                 for child in node.children:
                     if focus_new_note(child):
@@ -761,7 +764,6 @@ class NotesApp(App):
                 return False
 
             # Ensure all nodes are expanded before searching
-            self._unfold_node(tree.root)
             focus_new_note(tree.root)
 
             # Start editing the new note immediately
