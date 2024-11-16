@@ -5,8 +5,7 @@ description = "A TUI for draftsmith with markdown preview support"
 authors = ["ryan <exogenesis@protonmail.com>"]
 license = "GPL"
 readme = "README.md"
-packages = [{include = "*.py"}, {include = "draftsmith_css"}]
-include = ["draftsmith_css/**/*"]
+packages = [{include = "*", from="."}]
 
 [tool.poetry.scripts]
 ds-tui = "main:app"
