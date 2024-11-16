@@ -300,8 +300,12 @@ class NotesApp(App):
         """Recursively populate the tree with notes."""
         for note in notes:
             # Create label with visual indicator if note is marked
-            label = f"[red]*[/red] {note.title}" if note.id in self.marked_for_move else note.title
-            
+            label = (
+                f"[red]*[/red] {note.title}"
+                if note.id in self.marked_for_move
+                else note.title
+            )
+
             # Create a node for this note
             if isinstance(parent, Tree):
                 node = parent.root.add(label, data=note)
@@ -627,7 +631,7 @@ class NotesApp(App):
         else:
             self.marked_for_move.add(note.id)
             self.notify(f"Marked note: {note.title}")
-        
+
         # Refresh the tree to show visual indicators
         # Preserve current filter/search state
         if self.last_filter:
@@ -658,11 +662,13 @@ class NotesApp(App):
                 except Exception:
                     # Ignore error if note doesn't have a parent
                     pass
-                
+
                 # Then attach to new parent
                 self.notes_api.attach_note_to_parent(note_id, target_note.id)
-            
-            self.notify(f"Moved {len(self.marked_for_move)} notes as children of: {target_note.title}")
+
+            self.notify(
+                f"Moved {len(self.marked_for_move)} notes as children of: {target_note.title}"
+            )
             self.marked_for_move.clear()
             self.refresh_notes()
         except Exception as e:
@@ -673,7 +679,7 @@ class NotesApp(App):
         count = len(self.marked_for_move)
         self.marked_for_move.clear()
         self.notify(f"Cleared {count} marked notes")
-        
+
         # Refresh the tree to remove visual indicators
         # Preserve current filter/search state
         if self.last_filter:
