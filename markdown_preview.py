@@ -162,6 +162,12 @@ class MarkdownPreviewApp(QMainWindow):
         self.dark_mode_action.triggered.connect(self.toggle_dark_mode)
         toolbar.addAction(self.dark_mode_action)
 
+        # Add view source action
+        self.view_source_action = QAction("View Source", self)
+        self.view_source_action.setShortcut(QKeySequence("Ctrl+U"))
+        self.view_source_action.triggered.connect(self.view_source)
+        toolbar.addAction(self.view_source_action)
+
         # Create a combo box for note IDs
         self.combo_box = QComboBox()
         self.combo_box.currentIndexChanged.connect(self.on_combo_box_changed)
@@ -313,6 +319,24 @@ class MarkdownPreviewApp(QMainWindow):
         if hasattr(self, "scheme_handler"):
             self.scheme_handler.thread_pool.shutdown(wait=False)
         super().closeEvent(event)
+
+    def view_source(self):
+        """Show the HTML source of the current page in a new window."""
+        self.web_view.page().toHtml(self._show_source_window)
+
+    def _show_source_window(self, html_content: str):
+        """Create a new window to display the HTML source."""
+        source_window = QMainWindow(self)
+        source_window.setWindowTitle("Page Source")
+        source_window.setGeometry(150, 150, 800, 600)
+        
+        source_view = QWebEngineView(source_window)
+        # Display the HTML content as plain text
+        escaped_html = html_content.replace("<", "&lt;").replace(">", "&gt;")
+        source_view.setHtml(f"<pre style='white-space: pre-wrap; word-wrap: break-word;'>{escaped_html}</pre>")
+        
+        source_window.setCentralWidget(source_view)
+        source_window.show()
 
     def inject_resources(self, html_content: str) -> str:
         try:
