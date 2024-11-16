@@ -158,6 +158,9 @@ class MarkdownPreviewApp(QMainWindow):
         settings.setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True)
         settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
         settings.setAttribute(QWebEngineSettings.AllowRunningInsecureContent, True)
+        settings.setAttribute(QWebEngineSettings.PlaybackRequiresUserGesture, False)
+        settings.setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        settings.setAttribute(QWebEngineSettings.ShowScrollBars, True)
 
         # Layout setup
         layout = QVBoxLayout()
