@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import sys
 import base64
-import requests
 import typer
 import socket
 import threading
@@ -9,7 +8,6 @@ import os
 import json
 from pathlib import Path
 from typing import Optional
-from concurrent.futures import ThreadPoolExecutor
 
 # Import QWebEngineUrlScheme before any other WebEngine modules
 from PySide6.QtWebEngineCore import QWebEngineUrlScheme, QWebEngineUrlRequestJob
@@ -69,14 +67,8 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
         self.base_url = base_url
-        # Create a thread pool for concurrent asset fetching
-        self.thread_pool = ThreadPoolExecutor(max_workers=4)
 
     def requestStarted(self, job):
-        # Launch the request handling in a separate thread
-        self.thread_pool.submit(self._handle_request, job)
-
-    def _handle_request(self, job):
         url = job.requestUrl()
         print(f"AssetUrlSchemeHandler.requestStarted called with URL: {url.toString()}")
 
@@ -88,49 +80,15 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 job.fail(QWebEngineUrlRequestJob.RequestFailed)
                 return
 
+            # Create the redirect URL to the API endpoint
             api_url = f"{self.base_url}/assets/download/{asset_id}"
-            print(f"Fetching asset from API URL: {api_url}")
+            print(f"Redirecting to API URL: {api_url}")
+            
+            # Perform the redirect
+            job.redirect(QUrl(api_url))
 
-            # Fetch the asset from the API with timeout
-            response = requests.get(api_url, stream=True, timeout=10)
-
-            if response.status_code == 200:
-                content_type = response.headers.get("Content-Type", "application/octet-stream")
-                
-                # Create a QBuffer to store the streamed data
-                buffer = QBuffer(parent=self)
-                if not buffer.open(QIODevice.WriteOnly):
-                    print(f"Error: Could not open buffer for writing asset {asset_id}")
-                    job.fail(QWebEngineUrlRequestJob.RequestFailed)
-                    return
-
-                # Stream the data in chunks
-                chunk_size = 8192  # 8KB chunks
-                for chunk in response.iter_content(chunk_size=chunk_size):
-                    if chunk:
-                        buffer.write(QByteArray(chunk))
-
-                # Prepare buffer for reading
-                buffer.close()
-                if not buffer.open(QIODevice.ReadOnly):
-                    print(f"Error: Could not open buffer for reading asset {asset_id}")
-                    job.fail(QWebEngineUrlRequestJob.RequestFailed)
-                    return
-
-                # Send the data back to the web view
-                job.reply(content_type.encode(), buffer)
-            else:
-                print(f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}")
-                job.fail(QWebEngineUrlRequestJob.RequestFailed)
-
-        except requests.Timeout:
-            print(f"Timeout fetching asset {asset_id}")
-            job.fail(QWebEngineUrlRequestJob.TimeoutError)
-        except requests.RequestException as e:
-            print(f"Network error fetching asset {asset_id}: {e}")
-            job.fail(QWebEngineUrlRequestJob.NetworkError)
         except Exception as e:
-            print(f"Unexpected error fetching asset {asset_id}: {e}")
+            print(f"Error handling asset request: {e}")
             job.fail(QWebEngineUrlRequestJob.RequestFailed)
 
 
@@ -316,9 +274,6 @@ class MarkdownPreviewApp(QMainWindow):
     def closeEvent(self, event):
         """Handle application closure."""
         self.cleanup_ipc()
-        # Shutdown the thread pool in the scheme handler
-        if hasattr(self, "scheme_handler"):
-            self.scheme_handler.thread_pool.shutdown(wait=False)
         super().closeEvent(event)
 
     def view_source(self):
