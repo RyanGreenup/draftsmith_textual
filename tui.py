@@ -627,6 +627,15 @@ class NotesApp(App):
         else:
             self.marked_for_move.add(note.id)
             self.notify(f"Marked note: {note.title}")
+        
+        # Refresh the tree to show visual indicators
+        # Preserve current filter/search state
+        if self.last_filter:
+            self._apply_filter(self.last_filter)
+        elif self.last_search:
+            self._apply_search(self.last_search)
+        else:
+            self.refresh_notes()
 
     def action_paste_as_children(self) -> None:
         """Attach marked notes as children to current note."""
