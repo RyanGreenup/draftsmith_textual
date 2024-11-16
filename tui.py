@@ -708,17 +708,17 @@ class NotesApp(App):
         try:
             # Delete the note
             self.notes_api.delete_note(note.id)
-            
+
             # Clear the viewer
             viewer = self.query_one("#note-viewer", NoteViewer)
             viewer.display_note(None)
-            
+
             # Refresh the tree view
             self.refresh_notes()
-            
+
             # Notify user
             self.notify(f"Deleted note: {note.title}")
-            
+
         except Exception as e:
             self.notify(f"Error deleting note: {str(e)}", severity="error")
 
@@ -727,17 +727,17 @@ class NotesApp(App):
         try:
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
-            new_note = self.notes_api.create_note(api.CreateNoteRequest(title=title, content=""))
-            
+            new_note = self.notes_api.create_note(title=title, content="")
+
             # Refresh the tree view
             self.refresh_notes()
-            
+
             # Notify user
             self.notify(f"Created new note: {title}")
-            
+
             # Start editing the new note immediately
             self.app.set_timer(0.1, self.action_edit_note)
-            
+
         except Exception as e:
             self.notify(f"Error creating note: {str(e)}", severity="error")
 
