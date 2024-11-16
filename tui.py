@@ -673,6 +673,15 @@ class NotesApp(App):
         count = len(self.marked_for_move)
         self.marked_for_move.clear()
         self.notify(f"Cleared {count} marked notes")
+        
+        # Refresh the tree to remove visual indicators
+        # Preserve current filter/search state
+        if self.last_filter:
+            self._apply_filter(self.last_filter)
+        elif self.last_search:
+            self._apply_search(self.last_search)
+        else:
+            self.refresh_notes()
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
