@@ -628,23 +628,12 @@ class NotesApp(App):
                 return
             self._apply_search(value)
         else:
-            # Original filter logic
+            # Filter logic
             self.last_filter = value
             if not value:
                 self.refresh_notes()
                 return
-
-            tree = self.query_one("#notes-tree", Tree)
-            tree.clear()
-
-            try:
-                notes = self.notes_api.get_notes_tree()
-                filtered_notes = self._filter_notes(notes, value)
-                root = tree.root
-                self._populate_tree(filtered_notes, root)
-                self._unfold_node(tree.root)
-            except Exception as e:
-                tree.root.add_leaf("Error filtering notes: " + str(e))
+            self._apply_filter(value)
 
     def handle_filter_submit(self) -> None:
         """Handle input submission in the dialog."""
