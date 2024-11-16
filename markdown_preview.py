@@ -2,6 +2,11 @@ import sys
 import base64
 import requests
 import typer
+import socket
+import threading
+import os
+import json
+from pathlib import Path
 from typing import Optional
 
 # Import QWebEngineUrlScheme before any other WebEngine modules
@@ -101,7 +106,9 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
 
 
 class MarkdownPreviewApp(QMainWindow):
-    def __init__(self, base_url: str, initial_note_id: Optional[int] = None):
+    update_note_id = Signal(int)
+
+    def __init__(self, base_url: str, initial_note_id: Optional[int] = None, socket_path: Optional[str] = None):
         super().__init__()
 
         self.note_api = NoteAPI(base_url)
@@ -158,6 +165,13 @@ class MarkdownPreviewApp(QMainWindow):
             if index >= 0:
                 self.combo_box.setCurrentIndex(index)
 
+        # Connect the update signal
+        self.update_note_id.connect(self._update_note_id)
+        
+        # Set up IPC if socket path is provided
+        if socket_path:
+            self.setup_ipc_server(socket_path)
+
     def populate_combo_box(self):
         try:
             notes = self.note_api.get_all_notes_without_content()
@@ -193,6 +207,69 @@ class MarkdownPreviewApp(QMainWindow):
         current_index = self.combo_box.currentIndex()
         if current_index >= 0:
             self.on_combo_box_changed(current_index)
+
+    def setup_ipc_server(self, socket_path: str):
+        """Set up the IPC server using Unix Domain Socket."""
+        self.socket_path = socket_path
+        
+        # Remove existing socket file if it exists
+        if os.path.exists(socket_path):
+            os.unlink(socket_path)
+        
+        # Create the socket server
+        self.ipc_server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.ipc_server.bind(socket_path)
+        self.ipc_server.listen(1)
+        
+        # Start listening thread
+        self.ipc_thread = threading.Thread(target=self._handle_ipc_connections, daemon=True)
+        self.ipc_thread.start()
+
+    def _handle_ipc_connections(self):
+        """Handle incoming IPC connections."""
+        while True:
+            try:
+                conn, _ = self.ipc_server.accept()
+                with conn:
+                    while True:
+                        data = conn.recv(1024)
+                        if not data:
+                            break
+                        
+                        try:
+                            message = json.loads(data.decode())
+                            if message.get("command") == "set_note":
+                                note_id = message.get("note_id")
+                                if note_id is not None:
+                                    # Schedule the combo box update in the main thread
+                                    self.update_note_id.emit(note_id)
+                        except json.JSONDecodeError:
+                            print("Error: Invalid JSON message received")
+                        except Exception as e:
+                            print(f"Error handling IPC message: {e}")
+            except Exception as e:
+                print(f"IPC connection error: {e}")
+                if not os.path.exists(self.socket_path):
+                    # Socket file was deleted, exit the thread
+                    break
+
+    def _update_note_id(self, note_id: int):
+        """Update the combo box to show the specified note ID."""
+        index = self.combo_box.findData(note_id)
+        if index >= 0:
+            self.combo_box.setCurrentIndex(index)
+
+    def cleanup_ipc(self):
+        """Clean up IPC resources."""
+        if hasattr(self, 'ipc_server'):
+            self.ipc_server.close()
+        if hasattr(self, 'socket_path') and os.path.exists(self.socket_path):
+            os.unlink(self.socket_path)
+
+    def closeEvent(self, event):
+        """Handle application closure."""
+        self.cleanup_ipc()
+        super().closeEvent(event)
 
     def inject_resources(self, html_content: str) -> str:
         try:
@@ -347,10 +424,19 @@ def get_dark_palette():
     return dark_palette
 
 
-def launch_preview(base_url: str = "http://localhost:37240", initial_note_id: Optional[int] = None, dark_mode: bool = False):
+def launch_preview(
+    base_url: str = "http://localhost:37240",
+    initial_note_id: Optional[int] = None,
+    dark_mode: bool = False,
+    socket_path: Optional[str] = None,
+):
     """Launch the markdown preview application."""
     app = QApplication(sys.argv)
-    window = MarkdownPreviewApp(base_url=base_url, initial_note_id=initial_note_id)
+    window = MarkdownPreviewApp(
+        base_url=base_url,
+        initial_note_id=initial_note_id,
+        socket_path=socket_path
+    )
     if dark_mode:
         window.dark_mode_action.setChecked(True)
         window.toggle_dark_mode()
@@ -368,10 +454,11 @@ def preview(
     api_port: int = typer.Option(37240, help="API port"),
     id: Optional[int] = typer.Option(None, help="Open specific note by ID"),
     dark: bool = typer.Option(False, help="Start in dark mode"),
+    socket_path: Optional[str] = typer.Option(None, help="Unix Domain Socket path for IPC"),
 ):
     """Launch the markdown preview application with the specified API settings."""
     base_url = f"{api_scheme}://{api_host}:{api_port}"
-    sys.exit(launch_preview(base_url, initial_note_id=id, dark_mode=dark))
+    sys.exit(launch_preview(base_url, initial_note_id=id, dark_mode=dark, socket_path=socket_path))
 
 
 if __name__ == "__main__":
