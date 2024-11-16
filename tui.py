@@ -144,13 +144,11 @@ class NotesApp(App):
         ("k", "cursor_up", "↑"),
         ("h", "collapse_node", "←"),
         ("l", "expand_node", "→"),
-        
         # Folding
         ("z", "fold_cycle", "Fold →"),
         ("Z", "fold_cycle_reverse", "← Fold"),
         ("o", "unfold_tree", "Unfold"),
         ("O", "fold_to_first", "Level 1"),
-        
         # Actions
         ("e", "edit_note", "Edit"),
         ("E", "gui_edit_note", "GUI Edit"),
@@ -159,7 +157,6 @@ class NotesApp(App):
         ("F", "toggle_follow", "Follow"),
         ("r", "refresh", "Refresh"),
         ("f5", "toggle_flat_view", "Flat View"),
-        
         # System
         ("q", "quit", "Quit"),
     ]
@@ -511,37 +508,36 @@ class NotesApp(App):
     def _flatten_filtered_notes(self, notes: List[api.TreeNote]) -> List[api.TreeNote]:
         """Convert hierarchical filtered notes into a flat list."""
         flattened = []
-        
+
         def collect_matches(note: api.TreeNote):
             # If this note has no children, it must be a match
             if not note.children:
-                flattened.append(api.TreeNote(
-                    id=note.id,
-                    title=note.title,
-                    content=note.content,
-                    children=[]
-                ))
+                flattened.append(
+                    api.TreeNote(
+                        id=note.id, title=note.title, content=note.content, children=[]
+                    )
+                )
             # If it has children, recurse and collect matches
             else:
                 for child in note.children:
                     collect_matches(child)
-        
+
         for note in notes:
             collect_matches(note)
-        
+
         return flattened
 
     def action_toggle_flat_view(self) -> None:
         """Toggle between flat and hierarchical view for filtered results."""
         self.flat_view = not self.flat_view
-        
+
         # Only refresh if we're currently filtering/searching
         if self.last_filter or self.last_search:
             if self.dialog_mode == "search":
                 self._apply_search(self.last_search)
             else:
                 self._apply_filter(self.last_filter)
-        
+
         self.notify(f"{'Flat' if self.flat_view else 'Hierarchical'} view")
 
     def _apply_search(self, value: str) -> None:
@@ -577,7 +573,7 @@ class NotesApp(App):
         try:
             notes = self.notes_api.get_notes_tree()
             filtered_notes = self._filter_notes(notes, value)
-            
+
             # Convert to flat view if needed
             if self.flat_view:
                 filtered_notes = self._flatten_filtered_notes(filtered_notes)
