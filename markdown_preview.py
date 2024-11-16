@@ -32,7 +32,7 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal, QIODevice
+from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal, QIODevice, QThread
 from PySide6.QtGui import QColor, QKeySequence, QAction, QPalette
 from PySide6.QtWebEngineCore import (
     QWebEngineSettings,
@@ -67,34 +67,38 @@ class NotePage(QWebEnginePage):
 
 class StreamIOWrapper(QIODevice):
     def __init__(self, stream, parent=None):
+        if parent is not None:
+            # Ensure we're in the correct thread
+            if parent.thread() != QThread.currentThread():
+                raise RuntimeError("StreamIOWrapper must be created in the same thread as its parent")
         super().__init__(parent)
         self._stream = stream
+        self._buffer = QByteArray()
         self.open(QIODevice.ReadOnly)
 
     def isSequential(self):
         return True
 
     def readData(self, maxlen):
-        data = self._stream.read(maxlen)
-        if data:
-            return data
-        else:
-            return b''  # No more data
+        try:
+            data = self._stream.read(maxlen)
+            return data if data else b''
+        except Exception as e:
+            print(f"Error reading data: {e}")
+            return b''
 
     def bytesAvailable(self):
-        return self._stream._fp_bytes_read  # Return number of bytes read so far
+        return super().bytesAvailable() + len(self._buffer)
 
 
 class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
         self.base_url = base_url
-        # Create a thread pool for concurrent asset fetching
-        self.thread_pool = ThreadPoolExecutor(max_workers=4)
 
     def requestStarted(self, job):
-        # Launch the request handling in a separate thread
-        self.thread_pool.submit(self._handle_request, job)
+        # Handle the request in the same thread
+        self._handle_request(job)
 
     def _handle_request(self, job):
         url = job.requestUrl()
@@ -122,27 +126,12 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
 
             if response.status_code in (200, 206):  # OK or Partial Content
                 content_type = response.headers.get("Content-Type", "application/octet-stream")
-                content_length = response.headers.get("Content-Length")
-                accept_ranges = response.headers.get("Accept-Ranges", "bytes")
-                content_range = response.headers.get("Content-Range")
-
-                # Set response headers
-                headers = {
-                    b"Content-Type": content_type.encode(),
-                    b"Accept-Ranges": accept_ranges.encode(),
-                }
-                if content_length:
-                    headers[b"Content-Length"] = content_length.encode()
-                if content_range:
-                    headers[b"Content-Range"] = content_range.encode()
-
-                # Create a streaming device to read the response content
-                device = StreamIOWrapper(response.raw, parent=self)
-                # Reply with the content type and device
-                job.reply(content_type.encode(), device)
-                # Set response headers
-                for name, value in headers.items():
-                    job.setResponseHeader(name, value)
+                
+                # Create the reply with headers included in the reply() call
+                job.reply(
+                    content_type.encode(),
+                    StreamIOWrapper(response.raw, job)  # Note: using job as parent
+                )
             else:
                 print(f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}")
                 job.fail(QWebEngineUrlRequestJob.RequestFailed)
@@ -334,9 +323,6 @@ class MarkdownPreviewApp(QMainWindow):
     def closeEvent(self, event):
         """Handle application closure."""
         self.cleanup_ipc()
-        # Shutdown the thread pool in the scheme handler
-        if hasattr(self, "scheme_handler"):
-            self.scheme_handler.thread_pool.shutdown(wait=False)
         super().closeEvent(event)
 
     def inject_resources(self, html_content: str) -> str:
