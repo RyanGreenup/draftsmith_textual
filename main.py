@@ -62,14 +62,15 @@ def main(
     previewing notes in a GUI, setting the API connection parameters,
     and choosing a display mode.
     """
-    base_url = f"{api_scheme}://{api_host}:{api_port}"
+    # Construct base URL from string values
+    base_url = f"{str(api_scheme)}://{str(api_host)}:{str(api_port)}"
 
     if with_preview:
         # Launch the GUI preview first
-        pid = launch_gui_preview(base_url, socket_path, dark_preview)
+        pid = launch_gui_preview(base_url, str(socket_path), dark_preview)
         print(f"Started GUI preview with PID {pid}")
 
-    app = NotesApp(base_url=base_url, socket_path=socket_path)
+    app = NotesApp(base_url=base_url, socket_path=str(socket_path))
     app.run()
 
 
