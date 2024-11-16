@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import tempfile
 import subprocess
 import os
@@ -757,7 +758,7 @@ class NotesApp(App):
                         parent.expand()
                         parent = parent.parent
                     tree.root.expand()  # Ensure root is expanded
-                    
+
                     # Set cursor to the new node
                     tree.cursor_node = node
                     # Scroll to make the node visible

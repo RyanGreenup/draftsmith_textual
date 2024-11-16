@@ -17,6 +17,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python main.py --with-preview
+ln -s $(realpath main.py) ~/.local/bin/ds-tui
+chmod +x ~/.local/bin/ds-tui
+ds-tui --with-preview
 ```
 
 ## Screenshot
