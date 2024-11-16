@@ -13,9 +13,6 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     Launch the GUI preview in the background, discarding output.
     Returns the process ID.
     """
-    # Change to the script directory
-    # os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
     # Extract URL components
     scheme = base_url.split("://")[0]
     host = base_url.split("://")[1].split(":")[0]
