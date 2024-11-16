@@ -410,6 +410,18 @@ class MarkdownPreviewApp(QMainWindow):
                         border-radius: 8px;
                         box-shadow: 0 2px 4px {self.dark_mode and 'rgba(0,0,0,0.5)' or 'rgba(0,0,0,0.1)'};
                     }}
+                    /* Dark mode heading styles */
+                    {self.dark_mode and '''
+                    .markdown h1,
+                    .markdown h2, 
+                    .markdown h3,
+                    .markdown h4,
+                    .markdown h5,
+                    .markdown h6 {
+                        color: #d4d4d4;
+                        border-bottom-color: #444;
+                    }
+                    ''' or ''}
                 </style>
             </head>
             <body>
