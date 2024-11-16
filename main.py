@@ -14,7 +14,7 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     Returns the process ID.
     """
     # Change to the script directory
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+    # os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Extract URL components
     scheme = base_url.split("://")[0]
@@ -22,7 +22,7 @@ def launch_gui_preview(base_url: str, socket_path: str, dark_mode: bool = False)
     port = base_url.split(":")[-1]
 
     # Get the directory containing this script
-    script_dir = Path(__file__).parent.resolve()
+    script_dir = Path(__file__).readlink().parent.resolve()
     preview_script = script_dir / "markdown_preview.py"
 
     # Construct the command with string arguments
