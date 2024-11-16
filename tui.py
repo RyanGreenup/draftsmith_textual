@@ -548,16 +548,13 @@ class NotesApp(App):
         try:
             # Get search results
             search_results = self.notes_api.search_notes(value)
-            
+
             if self.flat_view:
                 # In flat view, directly use search results in their original order
                 filtered_notes = [
                     api.TreeNote(
-                        id=note.id, 
-                        title=note.title, 
-                        content=note.content, 
-                        children=[]
-                    ) 
+                        id=note.id, title=note.title, content=note.content, children=[]
+                    )
                     for note in search_results
                 ]
             else:
@@ -565,20 +562,23 @@ class NotesApp(App):
                 matching_ids = {note.id: idx for idx, note in enumerate(search_results)}
                 notes = self.notes_api.get_notes_tree()
                 filtered_notes = self._filter_notes_by_ids(notes, matching_ids.keys())
-                
+
                 # Sort the leaf nodes based on search order
-                def sort_by_search_order(notes: List[api.TreeNote]) -> List[api.TreeNote]:
+                def sort_by_search_order(
+                    notes: List[api.TreeNote],
+                ) -> List[api.TreeNote]:
                     # Sort immediate children
                     notes.sort(
-                        key=lambda n: matching_ids.get(n.id, float('inf')) 
-                        if not n.children else -1
+                        key=lambda n: matching_ids.get(n.id, float("inf"))
+                        if not n.children
+                        else -1
                     )
                     # Recursively sort children's children
                     for note in notes:
                         if note.children:
                             note.children = sort_by_search_order(note.children)
                     return notes
-                
+
                 filtered_notes = sort_by_search_order(filtered_notes)
 
             # Populate tree with filtered results
