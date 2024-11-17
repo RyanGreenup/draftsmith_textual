@@ -28,7 +28,8 @@ nvim ~/.local/bin/ds-tui
 ```bash
 #!/bin/sh
 
-$HOME/.local/share/opt/draftsmith_textual/main.py $@
+~/.local/share/opt/draftsmith_textual/venv/bin/python3 \ 
+    $HOME/.local/share/opt/draftsmith_textual/main.py $@
 ```
 
 ```
