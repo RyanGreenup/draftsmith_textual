@@ -28,7 +28,7 @@ nvim ~/.local/bin/ds-tui
 ```bash
 #!/bin/sh
 
-~/.local/share/opt/draftsmith_textual/venv/bin/python3 \ 
+~/.local/share/opt/draftsmith_textual/venv/bin/python3 \
     $HOME/.local/share/opt/draftsmith_textual/main.py $@
 ```
 
@@ -43,6 +43,7 @@ ds-tui --with-preview
 ![Screenshot](./assets/screenshot.png)
 
 ## Usage
+### Basic
 
 Start the markdown preview window:
 
@@ -55,6 +56,20 @@ In another terminal, start the TUI:
 ```bash
 ds-tui
 ```
+
+### Notes
+
+#### Videos
+
+PySide6 only supports freely licenced codecs, so you may need to convert videos to a supported format:
+
+```bash
+ffmpeg -i input.mkv out.webm
+```
+
+For larger videos, you may want to link to a self-hosted video server like streama or jellyfin. HTML is supported so user's may embed videos from any source.
+
+Note that `webm` is not supported on iOS due to Apple Magic 🌈, However, users can open the REST API link in VLC (i.e. open `http://my_server:37240/assets/download/vid.web` in VLC).
 
 ### Key Bindings
 
