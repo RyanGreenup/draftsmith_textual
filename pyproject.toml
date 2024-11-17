@@ -6,7 +6,6 @@ authors = ["ryan <exogenesis@protonmail.com>"]
 license = "GPL"
 readme = "README.md"
 packages = [{include = "*", from="."}]
-package-data = {"draftsmith-tui" = ["draftsmith_css/**/*"]}
 
 [tool.poetry.scripts]
 ds-tui = "main:app"

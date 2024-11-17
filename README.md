@@ -17,17 +17,33 @@ poetry export -f requirements.txt -o requirements.txt
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python main.py --with-preview
-ln -s $(realpath main.py) ~/.local/bin/ds-tui
+```
+
+Then create a script in your `$PATH` to run the TUI:
+
+```bash
+nvim ~/.local/bin/ds-tui
+```
+
+```bash
+#!/bin/sh
+
+~/.local/share/opt/draftsmith_textual/venv/bin/python3 \
+    $HOME/.local/share/opt/draftsmith_textual/main.py $@
+```
+
+```
 chmod +x ~/.local/bin/ds-tui
 ds-tui --with-preview
 ```
+
 
 ## Screenshot
 
 ![Screenshot](./assets/screenshot.png)
 
 ## Usage
+### Basic
 
 Start the markdown preview window:
 
@@ -40,6 +56,20 @@ In another terminal, start the TUI:
 ```bash
 ds-tui
 ```
+
+### Notes
+
+#### Videos
+
+PySide6 only supports freely licenced codecs, so you may need to convert videos to a supported format:
+
+```bash
+ffmpeg -i input.mkv out.webm
+```
+
+For larger videos, you may want to link to a self-hosted video server like streama or jellyfin. HTML is supported so user's may embed videos from any source.
+
+Note that `webm` is not supported on iOS due to Apple Magic 🌈, However, users can open the REST API link in VLC (i.e. open `http://my_server:37240/assets/download/vid.web` in VLC).
 
 ### Key Bindings
 
