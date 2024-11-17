@@ -173,7 +173,7 @@ class NotesApp(App):
         ("p", "paste_as_children", "Paste"),
         ("escape", "clear_marks", "Clear marks"),
         ("n", "new_note", "New Note"),
-        ("d", "delete_note", "Delete"),
+        ("D", "delete_note", "Delete"),
         # System
         ("q", "quit", "Quit"),
     ]
