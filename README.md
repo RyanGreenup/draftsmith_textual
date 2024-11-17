@@ -17,11 +17,25 @@ poetry export -f requirements.txt -o requirements.txt
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python main.py --with-preview
-ln -s $(realpath main.py) ~/.local/bin/ds-tui
+```
+
+Then create a script in your `$PATH` to run the TUI:
+
+```bash
+nvim ~/.local/bin/ds-tui
+```
+
+```bash
+#!/bin/sh
+
+$HOME/.local/share/opt/draftsmith_textual/main.py $@
+```
+
+```
 chmod +x ~/.local/bin/ds-tui
 ds-tui --with-preview
 ```
+
 
 ## Screenshot
 
