@@ -634,52 +634,47 @@ class NotesApp(App):
         """Create a new note and attach it to the current note."""
         try:
             # Get current note
-            tree = self.query_one(
-                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-            )
+            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
 
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
             new_note = self.notes_api.create_note(title=title, content="")
-            new_note_id = new_note["id"]  # Store the new note's ID
+            new_note_id = new_note["id"]
 
-            # Attach as a Child of the current note
-            if not tree.cursor_node or not isinstance(
-                tree.cursor_node.data, api.TreeNote
-            ):
-                self.notify("No parent note selected", severity="warning")
-            else:
+            # Attach as a Child of the current note if one is selected
+            if tree.cursor_node and isinstance(tree.cursor_node.data, api.TreeNote):
                 current_note = tree.cursor_node.data
-                # Attach it to the current note
                 self.notes_api.attach_note_to_parent(new_note_id, current_note.id)
-                # Notify user
                 self.notify(f"Created new note as child of: {current_note.title}")
+            else:
+                self.notify("Created new root note")
 
             # Refresh the tree view
             self.refresh_notes()
 
-            # Find and focus the new note
-            def focus_new_note(node: TreeNode) -> bool:
+            # Find and focus the new note after refresh
+            def find_and_focus_node(node: TreeNode) -> bool:
                 if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
-                    # Expand all parent nodes
-                    parent = node.parent
-                    while parent and parent != tree.root:
-                        parent.expand()
-                        parent = parent.parent
-                    tree.root.expand()  # Ensure root is expanded
-
-                    # Select the new node
-                    tree.select_node(node)
-                    # Scroll to make the node visible using the tree's method
+                    # Expand parent nodes to make the new note visible
+                    current = node.parent
+                    while current and current != tree.root:
+                        current.expand()
+                        current = current.parent
+                    tree.root.expand()
+                    
+                    # Set cursor to the new node
+                    tree.cursor_node = node
+                    # Ensure the node is visible in the viewport
                     tree.scroll_to_node(node)
                     return True
+                
                 for child in node.children:
-                    if focus_new_note(child):
+                    if find_and_focus_node(child):
                         return True
                 return False
 
             # Focus the new note
-            focus_new_note(tree.root)
+            find_and_focus_node(tree.root)
 
             # Start editing the new note immediately
             self.app.set_timer(0.1, self.action_edit_note)
