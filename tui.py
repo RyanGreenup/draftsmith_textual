@@ -92,55 +92,8 @@ class NotesApp(App):
     dialog_mode: str = "filter"  # Current dialog mode
     marked_for_move: set[int] = set()  # Store IDs of notes marked for moving
 
-    CSS = """
-    Tree {
-        width: 30%;
-        dock: left;
-    }
-
-    NoteViewer {
-        width: 70%;
-        dock: right;
-        background: $surface;
-        padding: 1;
-    }
-
-    FilterDialog {
-        align: center top;
-    }
-
-    FilterDialog Input {
-        width: 100%;  # Make input take full width
-        margin: 0;  # Remove margin
-        border: none;  # Remove border
-        height: 3;  # Match container height
-        background: $boost;  # Match container background
-    }
-
-    Footer {
-        background: $boost;
-        color: $text;
-        padding: 0 1;
-    }
-
-    Footer > .footer--key {
-        background: $primary-darken-2;
-        color: $text;
-        padding: 0 1;
-        margin: 0 1 0 0;
-        border: none;
-    }
-
-    Footer > .footer--highlight {
-        background: $primary-darken-3;
-        color: $text;
-    }
-
-    Footer > .footer--description {
-        color: $text-muted;
-        padding: 0 2 0 0;
-    }
-    """
+    with open("notes_css.css") as f:
+        CSS = f.read()
 
     BINDINGS = [
         # Navigation
