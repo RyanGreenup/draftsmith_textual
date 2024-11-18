@@ -559,11 +559,11 @@ class NotesApp(App):
             return
 
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
-        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
-            self.notify("No target note selected", severity="warning")
-            return
-
-        target_note = tree.cursor_node.data
+        
+        # Handle root-level paste (no target note selected)
+        target_note_id = None
+        if tree.cursor_node and isinstance(tree.cursor_node.data, api.TreeNote):
+            target_note_id = tree.cursor_node.data.id
 
         try:
             for note_id in self.marked_for_move:
@@ -574,11 +574,12 @@ class NotesApp(App):
                     # Ignore error if note doesn't have a parent
                     pass
 
-                # Then attach to new parent
-                self.notes_api.attach_note_to_parent(note_id, target_note.id)
+                # Only attach to new parent if not pasting at root level
+                if target_note_id is not None:
+                    self.notes_api.attach_note_to_parent(note_id, target_note_id)
 
             self.notify(
-                f"Moved {len(self.marked_for_move)} notes as children of: {target_note.title}"
+                f"Moved {len(self.marked_for_move)} notes to {'root level' if target_note_id is None else 'selected note'}"
             )
             self.marked_for_move.clear()
             self.refresh_notes()
