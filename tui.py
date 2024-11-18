@@ -245,7 +245,7 @@ class NotesApp(App):
         if not self.follow_mode:
             note = event.node.data
             if note and isinstance(note, api.TreeNote):
-                viewer = self.query_one("#note-viewer", NoteViewer)
+                viewer = self.query_one(f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer)
                 viewer.display_note(note.content)
 
     def action_toggle_follow(self) -> None:
@@ -553,7 +553,7 @@ class NotesApp(App):
             self.notify("No notes marked for moving", severity="warning")
             return
 
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No target note selected", severity="warning")
             return
