@@ -839,9 +839,6 @@ class NotesApp(App):
             dialog.remove()
 
 
-if __name__ == "__main__":
-    app = NotesApp()
-    app.run()
     def action_new_tab(self) -> None:
         """Create a new tab."""
         self.tab_manager.create_new_tab()
@@ -858,8 +855,6 @@ if __name__ == "__main__":
         """Switch to the previous tab."""
         self.tab_manager.previous_tab()
 
-    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
-        """Handle node highlight changes."""
-        self.tab_manager.handle_node_highlight(
-            event, self.follow_mode, self.auto_sync_gui
-        )
+if __name__ == "__main__":
+    app = NotesApp()
+    app.run()
