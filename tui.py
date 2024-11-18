@@ -203,33 +203,9 @@ class NotesApp(App):
             # Add error message to root node
             tree.root.add_leaf("Error loading notes: " + str(e))
 
-    def _populate_tree(
-        self, notes: list[api.TreeNote], parent: Tree | TreeNode
-    ) -> None:
+    def _populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode) -> None:
         """Recursively populate the tree with notes."""
-        for note in notes:
-            # Create label with visual indicator if note is marked
-            label = (
-                f"[red]*[/red] {note.title}"
-                if note.id in self.marked_for_move
-                else note.title
-            )
-
-            # Create a node for this note
-            if isinstance(parent, Tree):
-                node = parent.root.add(label, data=note)
-            else:
-                # Use add_leaf for nodes without children, add for nodes with children
-                if note.children:
-                    node = parent.add(label, data=note)
-                else:
-                    node = parent.add_leaf(label, data=note)
-            # Recursively add all children
-            if note.children:
-                for child in note.children:
-                    self._populate_tree(
-                        [child], node
-                    )  # Pass each child as a single-item list
+        self.tab_manager.tree_manager.populate_tree(notes, parent, self.marked_for_move)
 
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
         """Handle node highlight changes."""

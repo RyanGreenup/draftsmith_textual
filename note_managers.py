@@ -24,19 +24,27 @@ class NoteTreeManager:
     ) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
-            label = (
-                f"[red]*[/red] {note.title}" if note.id in marked_notes else note.title
-            )
-
+            # Create label with visual indicator if note is marked
+            label = f"[red]*[/red] {note.title}" if note.id in marked_notes else note.title
+            
+            # Determine if this note should be added as a leaf or branch
+            has_children = bool(note.children)
+            
             if isinstance(parent, Tree):
-                node = parent.root.add(label, data=note)
+                # Root level nodes
+                if has_children:
+                    node = parent.root.add(label, data=note)
+                else:
+                    node = parent.root.add_leaf(label, data=note)
             else:
-                if note.children:
+                # Non-root nodes
+                if has_children:
                     node = parent.add(label, data=note)
                 else:
                     node = parent.add_leaf(label, data=note)
-
-            if note.children:
+            
+            # Recursively add children if they exist
+            if has_children:
                 for child in note.children:
                     self.populate_tree([child], node, marked_notes)
 
