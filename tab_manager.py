@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from textual.widgets import Tree, Static
 from textual.containers import Container
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 import api
 from note_managers import NoteTreeManager
+
+if TYPE_CHECKING:
+    from tui import NotesApp, NoteViewer
 
 @dataclass
 class TabContent:
