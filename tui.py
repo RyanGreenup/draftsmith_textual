@@ -7,6 +7,7 @@ from textual.containers import Container
 from textual.widgets import Tree, TreeNode, Static, Input, Header, Footer
 from textual.reactive import reactive
 from textual.widgets.markdown import Markdown
+from typing import List, Optional
 import api
 import asyncio
 import json
