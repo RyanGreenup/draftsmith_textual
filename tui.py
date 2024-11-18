@@ -95,7 +95,9 @@ class NotesApp(App):
     dialog_mode: str = "filter"  # Current dialog mode
     marked_for_move: set[int] = set()  # Store IDs of notes marked for moving
 
-    with open("notes_css.css") as f:
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    css_file = os.path.join(this_dir, "notes_css.css")
+    with open(css_file) as f:
         CSS = f.read()
 
     BINDINGS = [
