@@ -437,7 +437,8 @@ class NotesApp(App):
                     current = current.parent
                 tree.root.expand()
 
-                # Select the node and ensure it's visible
+                # Select the node, move cursor to it, and ensure it's visible
+                tree.cursor = node  # Set cursor position
                 tree.select_node(node)
                 tree.scroll_to_node(node)
                 return True
