@@ -21,14 +21,17 @@ import tempfile
 class NoteViewer(Static):
     """Widget to display note content"""
 
+    def compose(self) -> ComposeResult:
+        """Create child widgets."""
+        yield Markdown()
+
     def display_note(self, content: Optional[str]) -> None:
         """Update the display with note content"""
+        markdown = self.query_one(Markdown)
         if content:
-            # Create markdown widget with content
-            markdown = Markdown(content)
-            self.update(markdown)
+            markdown.update(content)
         else:
-            self.update("No content")
+            markdown.update("No content")
 
 
 class FilterDialog(Container):
