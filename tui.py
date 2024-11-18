@@ -634,7 +634,9 @@ class NotesApp(App):
         """Create a new note and attach it to the current note."""
         try:
             # Get current note
-            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+            tree = self.query_one(
+                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+            )
 
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
@@ -661,22 +663,23 @@ class NotesApp(App):
                         current.expand()
                         current = current.parent
                     tree.root.expand()
-                    
+
                     # Select the node and ensure it's visible
                     tree.select_node(node)
                     tree.scroll_to_node(node)
                     return True
-                
+
                 for child in node.children:
                     if focus_new_note(child):
                         return True
                 return False
 
             # Focus the new note
-            focus_new_note(tree.root)
+            # TODO this doesn't work
+            # focus_new_note(tree.root)
 
             # Start editing the new note immediately
-            self.app.set_timer(0.1, self.action_edit_note)
+            # self.app.set_timer(0.1, self.action_edit_note)
 
         except Exception as e:
             self.notify(f"Error creating note: {str(e)}", severity="error")
@@ -889,7 +892,9 @@ class NotesApp(App):
             # If there's a grandparent (that's not the root), attach to it
             if grandparent_node and grandparent_node != tree.root:
                 grandparent_note = grandparent_node.data
-                self.notes_api.attach_note_to_parent(current_note.id, grandparent_note.id)
+                self.notes_api.attach_note_to_parent(
+                    current_note.id, grandparent_note.id
+                )
                 self.notify(f"Promoted note: {current_note.title}")
             else:
                 # Note becomes root-level
