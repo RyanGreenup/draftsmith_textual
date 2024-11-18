@@ -662,8 +662,8 @@ class NotesApp(App):
                         current = current.parent
                     tree.root.expand()
                     
-                    # Set cursor to the new node
-                    tree.cursor_node = node
+                    # Select the new node using the proper API method
+                    tree.select_node(node)
                     # Ensure the node is visible in the viewport
                     tree.scroll_to_node(node)
                     return True
