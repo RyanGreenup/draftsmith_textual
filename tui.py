@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
+import pyperclip
 from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Tree, Static, Input, Header, Footer
@@ -12,6 +13,7 @@ from textual.reactive import reactive
 from textual.widgets.markdown import Markdown
 from typing import List, Optional
 import api
+from api import Note
 import asyncio
 import json
 import os
@@ -102,6 +104,8 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
+        ("'", "jump_mark", "Jump to Mark"),
+        ("y", "yank_link", "Yank"),
         ("H", "promote_note", "Promote"),
         ("L", "demote_note", "Demote"),
         ("j", "cursor_down", "↓"),
@@ -410,6 +414,47 @@ class NotesApp(App):
         """Move cursor down in the tree."""
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.action_cursor_down()
+
+    def select_node_by_id(self, note_id: int) -> bool:
+        """Recursively select a node by ID."""
+        tree = self._get_tree()
+        if note := self._get_selected_note():
+            if note.id == note_id:
+                # TODO the rest must be implemented
+
+    def action_jump_mark(self) -> None:
+        # Walk the tree through the tree and find the node with the ID 179
+        if self.select_node_by_id(179):
+            return
+        else:
+            self.notify("Unable to select Note by id", severity="warning")
+
+    def _get_tree(self) -> Tree:
+        # TODO use this everywhere
+        # TODO use a property instead
+        tree = self.query_one(
+            f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+        )
+        return tree
+
+    def _get_selected_node(self) -> Optional[TreeNode]:
+        if node := self._get_tree().cursor_node:
+            return node
+        self.notify("Nothing selected in tree", severity="warning")
+
+    # TODO make sure this is used everywhere
+    def _get_selected_note(self) -> Optional[Note]:
+        if node := self._get_selected_node():
+            if note := node.data:
+                return note
+        self.notify("No note selected", severity="warning")
+        return None
+
+    def action_yank_link(self) -> None:
+        """Copy a wikilink to the current note."""
+        if note := self._get_selected_note():
+            note_id = note.id
+            pyperclip.copy(f"[[{note_id}]]")
 
     def action_cursor_up(self) -> None:
         """Move cursor up in the tree."""
