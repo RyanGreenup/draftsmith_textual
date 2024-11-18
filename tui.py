@@ -100,6 +100,7 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
+        ("alt+h", "promote_note", "Promote"),
         ("j", "cursor_down", "↓"),
         ("k", "cursor_up", "↑"),
         ("h", "collapse_node", "←"),
@@ -867,6 +868,43 @@ class NotesApp(App):
     def action_prev_tab(self) -> None:
         """Switch to the previous tab."""
         self.tab_manager.previous_tab()
+
+    def action_promote_note(self) -> None:
+        """Promote the current note up one level in the hierarchy."""
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
+            self.notify("No note selected", severity="warning")
+            return
+
+        current_note = tree.cursor_node.data
+        
+        # Find parent node
+        parent_node = tree.cursor_node.parent
+        if not parent_node or parent_node == tree.root:
+            self.notify("Note is already at root level", severity="warning")
+            return
+            
+        # Find grandparent node
+        grandparent_node = parent_node.parent
+        
+        try:
+            # First detach from current parent
+            self.notes_api.detach_note_from_parent(current_note.id)
+            
+            # If there's a grandparent (that's not the root), attach to it
+            if grandparent_node and grandparent_node != tree.root:
+                grandparent_note = grandparent_node.data
+                self.notes_api.attach_note_to_parent(current_note.id, grandparent_note.id)
+                self.notify(f"Promoted note: {current_note.title}")
+            else:
+                # Note becomes root-level
+                self.notify(f"Note moved to root level: {current_note.title}")
+                
+            # Refresh the tree view
+            self.refresh_notes()
+            
+        except Exception as e:
+            self.notify(f"Error promoting note: {str(e)}", severity="error")
 
 
 if __name__ == "__main__":
