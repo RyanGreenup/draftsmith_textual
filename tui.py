@@ -415,17 +415,18 @@ class NotesApp(App):
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.action_cursor_down()
 
+    # TODO restore the tree state
     def select_node_by_id(self, note_id: int) -> bool:
         """Recursively select a node by ID and make it visible.
-        
+
         Args:
             note_id: The ID of the note to select
-            
+
         Returns:
             bool: True if the node was found and selected, False otherwise
         """
         tree = self._get_tree()
-        
+
         def find_and_select(node: TreeNode) -> bool:
             # Check if this node matches
             if isinstance(node.data, api.TreeNote) and node.data.id == note_id:
@@ -435,18 +436,18 @@ class NotesApp(App):
                     current.expand()
                     current = current.parent
                 tree.root.expand()
-                
+
                 # Select the node and ensure it's visible
                 tree.select_node(node)
                 tree.scroll_to_node(node)
                 return True
-                
+
             # Recursively check children
             for child in node.children:
                 if find_and_select(child):
                     return True
             return False
-            
+
         return find_and_select(tree.root)
 
     def action_jump_mark(self) -> None:
