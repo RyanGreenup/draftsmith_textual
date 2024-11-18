@@ -597,7 +597,7 @@ class NotesApp(App):
 
     def action_delete_note(self) -> None:
         """Delete the current note after confirmation."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
             return
@@ -677,7 +677,7 @@ class NotesApp(App):
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.clear()
 
         try:
@@ -729,7 +729,7 @@ class NotesApp(App):
 
     def _apply_filter(self, value: str) -> None:
         """Apply filter with current view mode."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.clear()
 
         try:
@@ -820,7 +820,7 @@ class NotesApp(App):
                 self.refresh_notes()
                 return
 
-            tree = self.query_one("#notes-tree", Tree)
+            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
             tree.clear()
 
             try:
