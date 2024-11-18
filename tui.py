@@ -24,9 +24,8 @@ class NoteViewer(Static):
     def display_note(self, content: Optional[str]) -> None:
         """Update the display with note content"""
         if content:
-            # Render markdown content
-            markdown = Markdown(content)
-            self.update(markdown)
+            # Create markdown widget with content
+            self.update(Markdown(content, show_table_of_contents=False))
         else:
             self.update("No content")
 
