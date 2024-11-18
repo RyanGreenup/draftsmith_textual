@@ -1,10 +1,10 @@
 Tree {
-    width: 30%;
+    width: 40%;
     dock: left;
 }
 
 NoteViewer {
-    width: 70%;
+    width: 60%;
     dock: right;
     background: $surface;
     padding: 1;
