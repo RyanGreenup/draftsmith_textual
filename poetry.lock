@@ -554,6 +554,16 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pyperclip"
+version = "1.9.0"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyperclip-1.9.0.tar.gz", hash = "sha256:b7de0142ddc81bfc5c7507eea19da920b92252b548b96186caf94a5e2527d310"},
+]
+
+[[package]]
 name = "pyright"
 version = "1.1.389"
 description = "Command line wrapper for pyright"
@@ -941,4 +951,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.14"
-content-hash = "e5656e35c37975ad2f096976543270e4b4da03b2f24a68830b0145499afaa4e9"
+content-hash = "5286c8903679e271a45deeb21f43babacf3e84935bae95ddaa9ee75e099d4bab"
