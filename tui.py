@@ -1,23 +1,4 @@
 #!/usr/bin/env python3
-from Levenshtein import distance
-from datetime import datetime
-from pathlib import Path
-from rich.markdown import Markdown
-from rich.text import Text
-from textual.app import App, ComposeResult
-from textual.containers import Container, VerticalScroll
-from textual.reactive import reactive
-from textual.widgets import Footer, Header, Static, Tree
-from textual.widgets import Input
-from textual.widgets.tree import TreeNode
-from typing import Optional, List
-import api
-import asyncio
-import json
-import os
-import socket
-import subprocess
-import tempfile
 
 
 class NoteViewer(Static):
