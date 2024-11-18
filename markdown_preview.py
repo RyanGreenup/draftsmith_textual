@@ -64,7 +64,6 @@ class NotePage(QWebEnginePage):
         return True  # Allow all other navigation
 
 
-
 class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
     def __init__(self, base_url):
         super().__init__()
@@ -95,8 +94,10 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
             response = requests.get(api_url, stream=True, timeout=10)
 
             if response.status_code == 200:
-                content_type = response.headers.get("Content-Type", "application/octet-stream")
-                
+                content_type = response.headers.get(
+                    "Content-Type", "application/octet-stream"
+                )
+
                 # Create a QBuffer to store the streamed data
                 buffer = QBuffer(parent=self)
                 if not buffer.open(QIODevice.WriteOnly):
@@ -120,7 +121,9 @@ class AssetUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 # Send the data back to the web view
                 job.reply(content_type.encode(), buffer)
             else:
-                print(f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}")
+                print(
+                    f"HTTP Error {response.status_code} for asset {asset_id}: {response.text}"
+                )
                 job.fail(QWebEngineUrlRequestJob.RequestFailed)
 
         except requests.Timeout:
@@ -330,12 +333,14 @@ class MarkdownPreviewApp(QMainWindow):
         source_window = QMainWindow(self)
         source_window.setWindowTitle("Page Source")
         source_window.setGeometry(150, 150, 800, 600)
-        
+
         source_view = QWebEngineView(source_window)
         # Display the HTML content as plain text
         escaped_html = html_content.replace("<", "&lt;").replace(">", "&gt;")
-        source_view.setHtml(f"<pre style='white-space: pre-wrap; word-wrap: break-word;'>{escaped_html}</pre>")
-        
+        source_view.setHtml(
+            f"<pre style='white-space: pre-wrap; word-wrap: break-word;'>{escaped_html}</pre>"
+        )
+
         source_window.setCentralWidget(source_view)
         source_window.show()
 
@@ -480,9 +485,7 @@ class MarkdownPreviewApp(QMainWindow):
             return f"<html><body><pre>Error loading resources: {e}</pre><hr>{html_content}</body></html>"
         # Replace note links to use the file scheme
         full_html_content = re.sub(
-            r'href="/note/(\d+)"',
-            r'href="file:///note/\1"',
-            full_html_content
+            r'href="/note/(\d+)"', r'href="file:///note/\1"', full_html_content
         )
         # Replace asset URLs in the HTML content to use the custom scheme
         full_html_content = full_html_content.replace('src="/m/', 'src="asset:///')
