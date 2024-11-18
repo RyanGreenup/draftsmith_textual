@@ -148,6 +148,7 @@ class NotesApp(App):
         self.dialog_mode = "filter"  # Can be "filter" or "search"
         self.current_fold_level = 0  # Track current fold level
         self.flat_view = False  # Track if we're in flat view mode
+        self.tab_manager = TabManager(self, self.notes_api)
         self.socket_path = socket_path  # Store socket path
 
     def compose(self) -> ComposeResult:
