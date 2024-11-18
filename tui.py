@@ -657,8 +657,8 @@ class NotesApp(App):
                         parent = parent.parent
                     tree.root.expand()  # Ensure root is expanded
 
-                    # Set cursor to the new node
-                    tree.cursor_node = node
+                    # Select the new node
+                    tree.select_node(node)
                     # Scroll to make the node visible
                     node.scroll_visible()
                     return True
