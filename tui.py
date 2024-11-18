@@ -193,6 +193,10 @@ class NotesApp(App):
     def on_mount(self) -> None:
         """Create initial tab when app starts."""
         self.tab_manager.create_new_tab()
+        # Set initial fold level to 1
+        self.current_fold_level = 1
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        self._fold_to_level(tree.root, 1)
 
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
         """Get the titles of all expanded nodes in the tree."""

@@ -45,6 +45,9 @@ class TabManager:
         self.tabs.append(new_tab)
         self.switch_to_tab(len(self.tabs) - 1)
         self.refresh_current_tab()
+        # Set initial fold level to 1 for the new tab
+        tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
+        self.app._fold_to_level(tree.root, 1)
 
     def close_current_tab(self) -> None:
         """Close the current tab if there's more than one"""
