@@ -429,7 +429,7 @@ class NotesApp(App):
                 # Suspend the TUI, restore terminal state
                 with self.suspend():
                     _result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
-                # Restore UI after resuming
+                # Restore the complete UI
                 self.setup_ui()
             else:
                 # Run async without suspending TUI
