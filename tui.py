@@ -655,8 +655,16 @@ class NotesApp(App):
             # Find and focus the new note after refresh
             def focus_new_note(node: TreeNode) -> bool:
                 if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
-                    # Select node will automatically expand parents and scroll
-                    tree.select_node(node, auto_expand=True)
+                    # Expand all parent nodes to make the new node visible
+                    current = node.parent
+                    while current and current != tree.root:
+                        current.expand()
+                        current = current.parent
+                    tree.root.expand()
+                    
+                    # Select the node and ensure it's visible
+                    tree.select_node(node)
+                    tree.scroll_to_node(node)
                     return True
                 
                 for child in node.children:
