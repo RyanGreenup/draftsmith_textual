@@ -233,7 +233,7 @@ class NotesApp(App):
         if self.follow_mode:
             note = event.node.data
             if note and isinstance(note, api.TreeNote):
-                viewer = self.query_one("#note-viewer", NoteViewer)
+                viewer = self.query_one(NoteViewer)
                 viewer.display_note(note.content)
 
                 # Auto-sync to GUI if enabled
@@ -440,7 +440,7 @@ class NotesApp(App):
             )
 
             # Update the viewer
-            viewer = self.query_one("#note-viewer", NoteViewer)
+            viewer = self.query_one(NoteViewer)
             viewer.display_note(new_content)
 
             # Refresh the tree and reapply filter/search if one exists
