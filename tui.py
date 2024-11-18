@@ -110,10 +110,10 @@ class NotesApp(App):
         ("o", "unfold_tree", "Unfold"),
         ("O", "fold_to_first", "Level 1"),
         # Tabs
-        ("ctrl+t", "new_tab", "New Tab"),
+        ("t", "new_tab", "New Tab"),
         ("ctrl+w", "close_tab", "Close Tab"),
-        ("ctrl+tab", "next_tab", "Next Tab"),
-        ("ctrl+shift+tab", "prev_tab", "Prev Tab"),
+        (">", "next_tab", "Next Tab"),
+        ("<", "prev_tab", "Prev Tab"),
         # Actions
         ("e", "edit_note", "Edit"),
         ("E", "gui_edit_note", "GUI Edit"),
