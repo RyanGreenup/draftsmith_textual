@@ -908,7 +908,7 @@ class NotesApp(App):
             self.notify(f"Error promoting note: {str(e)}", severity="error")
 
     def action_demote_note(self) -> None:
-        """Demote the current note to be a child of the note above it in the tree."""
+        """Demote the current note to be a child of the previous sibling note."""
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
@@ -917,30 +917,27 @@ class NotesApp(App):
         current_note = tree.cursor_node.data
         current_node = tree.cursor_node
 
-        # Get all nodes in the tree in display order
-        all_nodes = []
-        def collect_nodes(node: TreeNode):
-            for child in node.children:
-                all_nodes.append(child)
-                if child.is_expanded:
-                    collect_nodes(child)
-        collect_nodes(tree.root)
+        # Get the parent node to find siblings
+        parent_node = current_node.parent if current_node.parent else tree.root
 
-        # Find current node's index in the tree
+        # Get all immediate children of the parent (siblings)
+        siblings = list(parent_node.children)
+        
+        # Find current node's index among siblings
         try:
-            current_index = all_nodes.index(current_node)
+            current_index = siblings.index(current_node)
         except ValueError:
-            self.notify("Cannot find current note in tree", severity="error")
+            self.notify("Cannot find current note among siblings", severity="error")
             return
 
-        # If it's the first node, we can't demote it
+        # If it's the first sibling, we can't demote it
         if current_index == 0:
-            self.notify("No note above to attach to", severity="warning")
+            self.notify("No previous sibling to attach to", severity="warning")
             return
 
-        # Get the node above
-        previous_node = all_nodes[current_index - 1]
-        previous_note = previous_node.data
+        # Get the previous sibling
+        previous_sibling = siblings[current_index - 1]
+        previous_note = previous_sibling.data
 
         try:
             # If current note has a parent, detach it first
@@ -950,9 +947,9 @@ class NotesApp(App):
                 # Ignore error if note doesn't have a parent
                 pass
 
-            # Attach to previous note
+            # Attach to previous sibling
             self.notes_api.attach_note_to_parent(current_note.id, previous_note.id)
-            self.notify(f"Demoted note: {current_note.title}")
+            self.notify(f"Demoted note under: {previous_note.title}")
 
             # Refresh the tree view
             self.refresh_notes()
