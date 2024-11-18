@@ -200,7 +200,7 @@ class NotesApp(App):
         self.tab_manager.create_new_tab()
         # Set initial fold level to 1
         self.current_fold_level = 0
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         self._fold_to_level(tree.root, 0)
 
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
@@ -222,8 +222,7 @@ class NotesApp(App):
     def refresh_notes(self) -> None:
         """Refresh the notes tree from the API while preserving expanded state."""
 
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
-
+        tree = self._get_tree()
         # Store expanded state before clearing
         expanded_nodes = self._get_expanded_nodes(tree.root)
 
@@ -279,13 +278,13 @@ class NotesApp(App):
 
     def action_expand_node(self) -> None:
         """Expand the selected tree node."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = tree = self._get_tree()
         if tree.cursor_node:
             tree.cursor_node.expand()
 
     def action_collapse_node(self) -> None:
         """Collapse the selected tree node."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         if tree.cursor_node:
             tree.cursor_node.collapse()
 
@@ -319,7 +318,7 @@ class NotesApp(App):
 
     def action_fold_cycle(self) -> None:
         """Cycle through fold levels (expanding)."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
 
         # Calculate next fold level
         if self.current_fold_level == 0:
@@ -342,8 +341,7 @@ class NotesApp(App):
 
     def action_fold_cycle_reverse(self) -> None:
         """Cycle through fold levels (collapsing)."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
-
+        tree = self._get_tree()
         # Calculate previous fold level
         if self.current_fold_level <= 1:
             self.current_fold_level = 0
@@ -363,14 +361,14 @@ class NotesApp(App):
 
     def action_fold_to_first(self) -> None:
         """Fold tree to show only first level items."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         self.current_fold_level = 1
         self._fold_to_level(tree.root, 1)
         self.notify("Folded to first level")
 
     def action_unfold_tree(self) -> None:
         """Unfold the entire tree."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         self._unfold_node(tree.root)
         self.current_fold_level = self._get_max_depth(tree.root)
 
@@ -378,9 +376,7 @@ class NotesApp(App):
         """Connect to the GUI preview via Unix Domain Socket."""
         try:
             # Get current note ID
-            tree = self.query_one(
-                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-            )
+            tree = self._get_tree()
             if not tree.cursor_node or not isinstance(
                 tree.cursor_node.data, api.TreeNote
             ):
@@ -412,11 +408,10 @@ class NotesApp(App):
 
     def action_cursor_down(self) -> None:
         """Move cursor down in the tree."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         tree.action_cursor_down()
 
-    # TODO restore the tree state
-    def select_node_by_id(self, note_id: int) -> bool:
+    def _select_node_by_id(self, note_id: int) -> bool:
         """Recursively select a node by ID and make it visible.
 
         Args:
@@ -497,14 +492,14 @@ class NotesApp(App):
 
     def action_cursor_up(self) -> None:
         """Move cursor up in the tree."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         tree.action_cursor_up()
 
     async def _edit_note_with_editor(
         self, editor_cmd: str, suspend: bool = True
     ) -> None:
         """Edit the current note with specified editor command."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             return
 
@@ -627,7 +622,7 @@ class NotesApp(App):
 
     def action_mark_for_move(self) -> None:
         """Mark current note for moving."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
             return
@@ -637,7 +632,7 @@ class NotesApp(App):
             self.marked_for_move.remove(note.id)
             self.notify(f"Unmarked note: {note.title}")
         else:
-            self.marked_for_move.add(note.id)
+            self.marked_for_move.append(note.id)
             self.notify(f"Marked note: {note.title}")
 
         # Refresh the tree to show visual indicators
@@ -655,7 +650,7 @@ class NotesApp(App):
             self.notify("No notes marked for moving", severity="warning")
             return
 
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
 
         # Handle root-level paste (no target note selected)
         target_note_id = None
@@ -700,7 +695,8 @@ class NotesApp(App):
 
     def action_delete_note(self) -> None:
         """Delete the current note after confirmation."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
+
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
             return
@@ -729,13 +725,12 @@ class NotesApp(App):
         """Create a new note and attach it to the current note."""
         try:
             # Get current note
-            tree = self.query_one(
-                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-            )
+            tree = self._get_tree()
 
             # Create a new note with default title and empty content
-            title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
-            new_note = self.notes_api.create_note(title=title, content="")
+            content = "New Note %Y-%m-%d %H:%M:%S"
+            title = datetime.now().strftime(content)
+            new_note = self.notes_api.create_note(title=title, content=f"# ")
             new_note_id = new_note["id"]
 
             # Attach as a Child of the current note if one is selected
@@ -811,7 +806,7 @@ class NotesApp(App):
 
     def _apply_filter(self, value: str) -> None:
         """Apply filter with current view mode."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         tree.clear()
 
         try:
@@ -874,9 +869,7 @@ class NotesApp(App):
                 self.refresh_notes()
                 return
 
-            tree = self.query_one(
-                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-            )
+            tree = self._get_tree()
             tree.clear()
 
             try:
@@ -904,9 +897,8 @@ class NotesApp(App):
                 self.refresh_notes()
                 return
 
-            tree = self.query_one(
-                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-            )
+            tree = self._get_tree()
+
             tree.clear()
 
             try:
@@ -942,7 +934,8 @@ class NotesApp(App):
 
     def action_promote_note(self) -> None:
         """Promote the current note up one level in the hierarchy."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
+
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
             return
@@ -984,7 +977,8 @@ class NotesApp(App):
 
     def action_demote_note(self) -> None:
         """Demote the current note to be a child of the previous sibling note."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
+
         if not tree.cursor_node or not isinstance(tree.cursor_node.data, api.TreeNote):
             self.notify("No note selected", severity="warning")
             return
