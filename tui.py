@@ -5,6 +5,8 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Tree, Static, Input, Header, Footer
+from textual.reactive import reactive
+from tab_manager import TabManager
 from textual.widgets.tree import TreeNode
 from textual.reactive import reactive
 from textual.widgets.markdown import Markdown
@@ -107,6 +109,11 @@ class NotesApp(App):
         ("Z", "fold_cycle_reverse", "← Fold"),
         ("o", "unfold_tree", "Unfold"),
         ("O", "fold_to_first", "Level 1"),
+        # Tabs
+        ("ctrl+t", "new_tab", "New Tab"),
+        ("ctrl+w", "close_tab", "Close Tab"),
+        ("ctrl+tab", "next_tab", "Next Tab"),
+        ("ctrl+shift+tab", "prev_tab", "Prev Tab"),
         # Actions
         ("e", "edit_note", "Edit"),
         ("E", "gui_edit_note", "GUI Edit"),
@@ -144,21 +151,17 @@ class NotesApp(App):
         self.socket_path = socket_path  # Store socket path
 
     def compose(self) -> ComposeResult:
-        """Create child widgets."""
+        """Create child widgets with tabs."""
         yield Header()
         yield Container(
-            Tree("Notes", id="notes-tree"),
-            NoteViewer(id="note-viewer"),
+            Static("", id="tab-bar"),
+            Container(id="tab-content"),
         )
         yield Footer()
 
     def on_mount(self) -> None:
-        """Load the notes tree when the app starts."""
-        self.refresh_notes()
-        # Fold to first level on startup
-        tree = self.query_one("#notes-tree", Tree)
-        self.current_fold_level = 1
-        self._fold_to_level(tree.root, 1)
+        """Create initial tab when app starts."""
+        self.tab_manager.create_new_tab()
 
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
         """Get the titles of all expanded nodes in the tree."""
@@ -838,3 +841,24 @@ class NotesApp(App):
 if __name__ == "__main__":
     app = NotesApp()
     app.run()
+    def action_new_tab(self) -> None:
+        """Create a new tab."""
+        self.tab_manager.create_new_tab()
+
+    def action_close_tab(self) -> None:
+        """Close the current tab."""
+        self.tab_manager.close_current_tab()
+
+    def action_next_tab(self) -> None:
+        """Switch to the next tab."""
+        self.tab_manager.next_tab()
+
+    def action_prev_tab(self) -> None:
+        """Switch to the previous tab."""
+        self.tab_manager.previous_tab()
+
+    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
+        """Handle node highlight changes."""
+        self.tab_manager.handle_node_highlight(
+            event, self.follow_mode, self.auto_sync_gui
+        )
