@@ -36,8 +36,8 @@ class TabManager:
         """Create a new tab with its own tree and viewer"""
         from tui import NoteViewer  # Import here to avoid circular dependency
         
-        tree = Tree("Notes", id="notes-tree")
-        viewer = NoteViewer(id="note-viewer")
+        tree = Tree("Notes", id=f"notes-tree-{len(self.tabs)}")
+        viewer = NoteViewer(id=f"note-viewer-{len(self.tabs)}")
         new_tab = TabContent(tree=tree, viewer=viewer)
         self.tabs.append(new_tab)
         self.switch_to_tab(len(self.tabs) - 1)

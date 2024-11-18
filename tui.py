@@ -182,7 +182,7 @@ class NotesApp(App):
 
     def refresh_notes(self) -> None:
         """Refresh the notes tree from the API while preserving expanded state."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.current_tab_index}", Tree)
 
         # Store expanded state before clearing
         expanded_nodes = self._get_expanded_nodes(tree.root)
@@ -608,7 +608,7 @@ class NotesApp(App):
             self.notes_api.delete_note(note.id)
 
             # Clear the viewer
-            viewer = self.query_one("#note-viewer", NoteViewer)
+            viewer = self.query_one(f"#note-viewer-{self.current_tab_index}", NoteViewer)
             viewer.display_note(None)
 
             # Refresh the tree view
