@@ -8,25 +8,28 @@ from note_managers import NoteTreeManager
 if TYPE_CHECKING:
     from tui import NotesApp, NoteViewer
 
+
 @dataclass
 class TabContent:
     """Represents the content of a single tab"""
+
     tree: Tree
     viewer: "NoteViewer"  # Forward reference
     last_filter: str = ""
     last_search: str = ""
     dialog_mode: str = "filter"
 
+
 class TabManager:
     """Manages all tab-related operations"""
-    
+
     def __init__(self, app: "NotesApp", notes_api: api.NoteAPI):  # Forward reference
         self.app = app
         self.notes_api = notes_api
         self.tabs: List[TabContent] = []
         self.current_tab_index: int = 0
         self.tree_manager = NoteTreeManager(notes_api)
-        
+
     @property
     def current_tab(self) -> Optional[TabContent]:
         """Get the current tab content"""
@@ -35,7 +38,7 @@ class TabManager:
     def create_new_tab(self) -> None:
         """Create a new tab with its own tree and viewer"""
         from tui import NoteViewer  # Import here to avoid circular dependency
-        
+
         tree = Tree("Notes", id=f"notes-tree-{len(self.tabs)}")
         viewer = NoteViewer(id=f"note-viewer-{len(self.tabs)}")
         new_tab = TabContent(tree=tree, viewer=viewer)
@@ -55,13 +58,13 @@ class TabManager:
         if 0 <= index < len(self.tabs):
             tab_content = self.app.query_one("#tab-content", Container)
             tab_content.remove_children()
-            
+
             self.current_tab_index = index
             current_tab = self.current_tab
             if current_tab:
                 tab_content.mount(current_tab.tree)
                 tab_content.mount(current_tab.viewer)
-            
+
             self.update_tab_bar()
 
     def update_tab_bar(self) -> None:
@@ -102,11 +105,13 @@ class TabManager:
             prev_index = (self.current_tab_index - 1) % len(self.tabs)
             self.switch_to_tab(prev_index)
 
-    def handle_node_highlight(self, node: Tree.NodeHighlighted, follow_mode: bool, auto_sync: bool) -> None:
+    def handle_node_highlight(
+        self, node: Tree.NodeHighlighted, follow_mode: bool, auto_sync: bool
+    ) -> None:
         """Handle node highlight event"""
         if not follow_mode:
             return
-            
+
         current_tab = self.current_tab
         if not current_tab:
             return

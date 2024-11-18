@@ -246,7 +246,9 @@ class NotesApp(App):
         if not self.follow_mode:
             note = event.node.data
             if note and isinstance(note, api.TreeNote):
-                viewer = self.query_one(f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer)
+                viewer = self.query_one(
+                    f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer
+                )
                 viewer.display_note(note.content)
 
     def action_toggle_follow(self) -> None:
@@ -359,7 +361,9 @@ class NotesApp(App):
         """Connect to the GUI preview via Unix Domain Socket."""
         try:
             # Get current note ID
-            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+            tree = self.query_one(
+                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+            )
             if not tree.cursor_node or not isinstance(
                 tree.cursor_node.data, api.TreeNote
             ):
@@ -418,7 +422,7 @@ class NotesApp(App):
             if suspend:
                 # Suspend the TUI, restore terminal state
                 with self.suspend():
-                    result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
+                    _result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
                 # Refresh footer after resuming
                 self.query_one(Footer).refresh()
             else:
@@ -609,7 +613,9 @@ class NotesApp(App):
             self.notes_api.delete_note(note.id)
 
             # Clear the viewer
-            viewer = self.query_one(f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer)
+            viewer = self.query_one(
+                f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer
+            )
             viewer.display_note(None)
 
             # Refresh the tree view
@@ -625,7 +631,9 @@ class NotesApp(App):
         """Create a new note and attach it to the current note."""
         try:
             # Get current note
-            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+            tree = self.query_one(
+                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+            )
 
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
@@ -793,7 +801,9 @@ class NotesApp(App):
                 self.refresh_notes()
                 return
 
-            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+            tree = self.query_one(
+                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+            )
             tree.clear()
 
             try:
@@ -821,7 +831,9 @@ class NotesApp(App):
                 self.refresh_notes()
                 return
 
-            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+            tree = self.query_one(
+                f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
+            )
             tree.clear()
 
             try:
@@ -839,7 +851,6 @@ class NotesApp(App):
         if dialog:
             dialog.remove()
 
-
     def action_new_tab(self) -> None:
         """Create a new tab."""
         self.tab_manager.create_new_tab()
@@ -855,6 +866,7 @@ class NotesApp(App):
     def action_prev_tab(self) -> None:
         """Switch to the previous tab."""
         self.tab_manager.previous_tab()
+
 
 if __name__ == "__main__":
     app = NotesApp()
