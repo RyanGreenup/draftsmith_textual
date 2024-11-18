@@ -160,8 +160,6 @@ class NotesApp(App):
         self.current_fold_level = 1
         self._fold_to_level(tree.root, 1)
 
-
-
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
         """Get the titles of all expanded nodes in the tree."""
         expanded = set()
@@ -694,9 +692,7 @@ class NotesApp(App):
                 # For hierarchical view, preserve paths but order matched leaves by search order
                 matching_ids = {note.id: idx for idx, note in enumerate(search_results)}
                 notes = self.notes_api.get_notes_tree()
-                filtered_notes = filter_notes_by_ids(
-                    notes, set(matching_ids.keys())
-                )
+                filtered_notes = filter_notes_by_ids(notes, set(matching_ids.keys()))
 
                 # Sort the leaf nodes based on search order
                 def sort_by_search_order(

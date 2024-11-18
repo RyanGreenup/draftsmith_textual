@@ -11,16 +11,22 @@ import socket
 import subprocess
 import tempfile
 
+
 class NoteTreeManager:
     """Handles all tree-related operations"""
+
     def __init__(self, notes_api: api.NoteAPI):
         self.notes_api = notes_api
         self.current_fold_level = 0
 
-    def populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode, marked_notes: Set[int]) -> None:
+    def populate_tree(
+        self, notes: list[api.TreeNote], parent: Tree | TreeNode, marked_notes: Set[int]
+    ) -> None:
         """Recursively populate the tree with notes."""
         for note in notes:
-            label = f"[red]*[/red] {note.title}" if note.id in marked_notes else note.title
+            label = (
+                f"[red]*[/red] {note.title}" if note.id in marked_notes else note.title
+            )
 
             if isinstance(parent, Tree):
                 node = parent.root.add(label, data=note)
@@ -29,7 +35,7 @@ class NoteTreeManager:
                     node = parent.add(label, data=note)
                 else:
                     node = parent.add_leaf(label, data=note)
-            
+
             if note.children:
                 for child in note.children:
                     self.populate_tree([child], node, marked_notes)
@@ -50,14 +56,18 @@ class NoteTreeManager:
             title_chars = set(note.title.lower())
             title_matches = all(char in title_chars for char in query_chars)
 
-            filtered_children = self.filter_notes(note.children, query) if note.children else []
+            filtered_children = (
+                self.filter_notes(note.children, query) if note.children else []
+            )
 
             if title_matches or filtered_children:
                 current_note.children = filtered_children
                 filtered.append(current_note)
         return filtered
 
-    def filter_notes_by_ids(self, notes: List[api.TreeNote], matching_ids: set[int]) -> List[api.TreeNote]:
+    def filter_notes_by_ids(
+        self, notes: List[api.TreeNote], matching_ids: set[int]
+    ) -> List[api.TreeNote]:
         """Filter notes tree to only include paths to matching IDs."""
         filtered = []
 
@@ -120,12 +130,16 @@ class NoteTreeManager:
             return self.get_node_level(node)
         return max(self.get_max_depth(child) for child in node.children)
 
+
 class NoteContentManager:
     """Handles note content operations"""
+
     def __init__(self, notes_api: api.NoteAPI):
         self.notes_api = notes_api
 
-    async def edit_note_with_editor(self, note: api.TreeNote, editor_cmd: str, suspend: bool = True) -> str:
+    async def edit_note_with_editor(
+        self, note: api.TreeNote, editor_cmd: str, suspend: bool = True
+    ) -> str:
         """Edit the note with specified editor command."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as tmp:
             tmp.write(note.content or "")
@@ -134,7 +148,7 @@ class NoteContentManager:
         try:
             if suspend:
                 # Use context manager for suspension if provided
-                if hasattr(self, 'suspend_context'):
+                if hasattr(self, "suspend_context"):
                     with self.suspend_context():
                         result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
                 else:
@@ -160,14 +174,16 @@ class NoteContentManager:
         """Create a new note."""
         title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
         new_note = self.notes_api.create_note(title=title, content="")
-        
+
         if parent_id is not None:
             self.notes_api.attach_note_to_parent(new_note["id"], parent_id)
-            
+
         return new_note
+
 
 class ExternalIntegrationManager:
     """Handles external connections and integrations"""
+
     def __init__(self, base_url: str, socket_path: str):
         self.notes_api = api.NoteAPI(base_url)
         self.socket_path = socket_path
@@ -182,8 +198,10 @@ class ExternalIntegrationManager:
         except (FileNotFoundError, ConnectionRefusedError) as e:
             raise ConnectionError(f"GUI preview connection failed: {str(e)}")
 
+
 class NoteStateManager:
     """Manages application state"""
+
     def __init__(self):
         self.marked_notes: set[int] = set()
         self.last_filter: str = ""
@@ -193,6 +211,7 @@ class NoteStateManager:
         self.auto_sync: bool = False
         self.flat_view: bool = False
         self.current_fold_level: int = 0
+
 
 def filter_notes_by_query(notes: List[api.TreeNote], query: str) -> List[api.TreeNote]:
     """Filter notes based on presence of all query characters."""
@@ -222,7 +241,10 @@ def filter_notes_by_query(notes: List[api.TreeNote], query: str) -> List[api.Tre
             filtered.append(current_note)
     return filtered
 
-def filter_notes_by_ids(notes: List[api.TreeNote], matching_ids: set[int]) -> List[api.TreeNote]:
+
+def filter_notes_by_ids(
+    notes: List[api.TreeNote], matching_ids: set[int]
+) -> List[api.TreeNote]:
     """Filter notes tree to only include paths to matching IDs."""
     filtered = []
 
@@ -232,9 +254,7 @@ def filter_notes_by_ids(notes: List[api.TreeNote], matching_ids: set[int]) -> Li
         )
 
         filtered_children = (
-            filter_notes_by_ids(note.children, matching_ids)
-            if note.children
-            else []
+            filter_notes_by_ids(note.children, matching_ids) if note.children else []
         )
 
         if note.id in matching_ids or filtered_children:
@@ -243,10 +263,11 @@ def filter_notes_by_ids(notes: List[api.TreeNote], matching_ids: set[int]) -> Li
 
     return filtered
 
+
 def flatten_filtered_notes(notes: List[api.TreeNote]) -> List[api.TreeNote]:
     """Convert hierarchical filtered notes into a flat list."""
     flattened = []
-    
+
     def collect_matches(note: api.TreeNote):
         if not note.children:
             flattened.append(
