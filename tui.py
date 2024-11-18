@@ -670,8 +670,8 @@ class NotesApp(App):
 
                     # Select the new node
                     tree.select_node(node)
-                    # Scroll to make the node visible
-                    node.scroll_visible()
+                    # Scroll to make the node visible using the tree's method
+                    tree.scroll_to_node(node)
                     return True
                 for child in node.children:
                     if focus_new_note(child):
