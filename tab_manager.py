@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from textual.widgets import Tree, Static, Container
+from textual.widgets import Tree, Static
+from textual.containers import Container
 from typing import Optional, List
 import api
 from note_managers import NoteTreeManager
