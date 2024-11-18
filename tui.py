@@ -4,7 +4,8 @@ from datetime import datetime
 from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.containers import Container
-from textual.widgets import Tree, TreeNode, Static, Input, Header, Footer
+from textual.widgets import Tree, Static, Input, Header, Footer
+from textual.widgets.tree import TreeNode
 from textual.reactive import reactive
 from textual.widgets.markdown import Markdown
 from typing import List, Optional
