@@ -194,6 +194,34 @@ class NoteStateManager:
         self.flat_view: bool = False
         self.current_fold_level: int = 0
 
+def filter_notes_by_query(notes: List[api.TreeNote], query: str) -> List[api.TreeNote]:
+    """Filter notes based on presence of all query characters."""
+    if not query:
+        return notes
+
+    filtered = []
+    query_chars = set(query.lower())
+
+    for note in notes:
+        current_note = api.TreeNote(
+            id=note.id, title=note.title, content=note.content, children=[]
+        )
+
+        # Check if all query characters are present in the title
+        title_chars = set(note.title.lower())
+        title_matches = all(char in title_chars for char in query_chars)
+
+        # Recursively filter children
+        filtered_children = (
+            filter_notes_by_query(note.children, query) if note.children else []
+        )
+
+        # Include note if it matches or has matching children
+        if title_matches or filtered_children:
+            current_note.children = filtered_children
+            filtered.append(current_note)
+    return filtered
+
 def filter_notes_by_ids(notes: List[api.TreeNote], matching_ids: set[int]) -> List[api.TreeNote]:
     """Filter notes tree to only include paths to matching IDs."""
     filtered = []

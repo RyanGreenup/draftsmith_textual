@@ -16,7 +16,7 @@ import os
 import socket
 import subprocess
 import tempfile
-from note_managers import filter_notes_by_ids
+from note_managers import filter_notes_by_ids, filter_notes_by_query
 
 
 class NoteViewer(Static):
@@ -161,35 +161,6 @@ class NotesApp(App):
         self._fold_to_level(tree.root, 1)
 
 
-    def _filter_notes(
-        self, notes: List[api.TreeNote], query: str
-    ) -> List[api.TreeNote]:
-        """Filter notes based on presence of all query characters."""
-        if not query:
-            return notes
-
-        filtered = []
-        query_chars = set(query.lower())
-
-        for note in notes:
-            current_note = api.TreeNote(
-                id=note.id, title=note.title, content=note.content, children=[]
-            )
-
-            # Check if all query characters are present in the title
-            title_chars = set(note.title.lower())
-            title_matches = all(char in title_chars for char in query_chars)
-
-            # Recursively filter children
-            filtered_children = (
-                self._filter_notes(note.children, query) if note.children else []
-            )
-
-            # Include note if it matches or has matching children
-            if title_matches or filtered_children:
-                current_note.children = filtered_children
-                filtered.append(current_note)
-        return filtered
 
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
         """Get the titles of all expanded nodes in the tree."""
@@ -747,7 +718,7 @@ class NotesApp(App):
 
             # Apply additional filter if one exists
             if self.last_filter:
-                filtered_notes = self._filter_notes(filtered_notes, self.last_filter)
+                filtered_notes = filter_notes_by_query(filtered_notes, self.last_filter)
 
             # Populate tree with filtered results
             root = tree.root
@@ -769,7 +740,7 @@ class NotesApp(App):
 
             # Otherwise filter the full tree
             notes = self.notes_api.get_notes_tree()
-            filtered_notes = self._filter_notes(notes, value)
+            filtered_notes = filter_notes_by_query(notes, value)
 
             # Convert to flat view if needed
             if self.flat_view:
