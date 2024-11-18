@@ -100,8 +100,8 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
-        ("alt+h", "promote_note", "Promote"),
-        ("alt+l", "demote_note", "Demote"),
+        ("left", "promote_note", "Promote"),
+        ("right", "demote_note", "Demote"),
         ("j", "cursor_down", "↓"),
         ("k", "cursor_up", "↑"),
         ("h", "collapse_node", "←"),
@@ -878,20 +878,20 @@ class NotesApp(App):
             return
 
         current_note = tree.cursor_node.data
-        
+
         # Find parent node
         parent_node = tree.cursor_node.parent
         if not parent_node or parent_node == tree.root:
             self.notify("Note is already at root level", severity="warning")
             return
-            
+
         # Find grandparent node
         grandparent_node = parent_node.parent
-        
+
         try:
             # First detach from current parent
             self.notes_api.detach_note_from_parent(current_note.id)
-            
+
             # If there's a grandparent (that's not the root), attach to it
             if grandparent_node and grandparent_node != tree.root:
                 grandparent_note = grandparent_node.data
@@ -900,10 +900,10 @@ class NotesApp(App):
             else:
                 # Note becomes root-level
                 self.notify(f"Note moved to root level: {current_note.title}")
-                
+
             # Refresh the tree view
             self.refresh_notes()
-            
+
         except Exception as e:
             self.notify(f"Error promoting note: {str(e)}", severity="error")
 
@@ -916,33 +916,33 @@ class NotesApp(App):
 
         current_note = tree.cursor_node.data
         current_node = tree.cursor_node
-        
+
         # Find previous sibling
         parent_node = current_node.parent
         if not parent_node:
             self.notify("Cannot demote root level note without siblings", severity="warning")
             return
-            
+
         siblings = parent_node.children
         current_index = siblings.index(current_node)
         if current_index == 0:
             self.notify("No previous sibling to attach to", severity="warning")
             return
-            
+
         previous_sibling = siblings[current_index - 1]
         previous_note = previous_sibling.data
-        
+
         try:
             # First detach from current parent
             self.notes_api.detach_note_from_parent(current_note.id)
-            
+
             # Attach to previous sibling
             self.notes_api.attach_note_to_parent(current_note.id, previous_note.id)
             self.notify(f"Demoted note: {current_note.title}")
-            
+
             # Refresh the tree view
             self.refresh_notes()
-            
+
         except Exception as e:
             self.notify(f"Error demoting note: {str(e)}", severity="error")
 
