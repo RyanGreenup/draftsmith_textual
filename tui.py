@@ -390,12 +390,12 @@ class NotesApp(App):
 
     def action_cursor_down(self) -> None:
         """Move cursor down in the tree."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.action_cursor_down()
 
     def action_cursor_up(self) -> None:
         """Move cursor up in the tree."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         tree.action_cursor_up()
 
     async def _edit_note_with_editor(
