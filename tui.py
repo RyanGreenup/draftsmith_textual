@@ -608,7 +608,7 @@ class NotesApp(App):
             self.notes_api.delete_note(note.id)
 
             # Clear the viewer
-            viewer = self.query_one(f"#note-viewer-{self.current_tab_index}", NoteViewer)
+            viewer = self.query_one(f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer)
             viewer.display_note(None)
 
             # Refresh the tree view
@@ -624,7 +624,7 @@ class NotesApp(App):
         """Create a new note and attach it to the current note."""
         try:
             # Get current note
-            tree = self.query_one("#notes-tree", Tree)
+            tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
 
             # Create a new note with default title and empty content
             title = datetime.now().strftime("New Note %Y-%m-%d %H:%M:%S")
