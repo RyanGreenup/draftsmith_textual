@@ -649,32 +649,37 @@ class NotesApp(App):
             else:
                 self.notify("Created new root note")
 
+            # Store expanded state before refresh
+            expanded_nodes = self._get_expanded_nodes(tree.root)
+            
             # Refresh the tree view
             self.refresh_notes()
 
             # Find and focus the new note after refresh
-            def find_and_focus_node(node: TreeNode) -> bool:
+            def focus_new_note(node: TreeNode) -> bool:
                 if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
-                    # Expand parent nodes to make the new note visible
+                    # Restore expanded state
+                    self._restore_expanded_nodes(tree.root, expanded_nodes)
+                    
+                    # Expand parents of the new node
                     current = node.parent
                     while current and current != tree.root:
                         current.expand()
                         current = current.parent
                     tree.root.expand()
                     
-                    # Select the new node using the proper API method
+                    # Select and scroll to the new node
                     tree.select_node(node)
-                    # Ensure the node is visible in the viewport
                     tree.scroll_to_node(node)
                     return True
                 
                 for child in node.children:
-                    if find_and_focus_node(child):
+                    if focus_new_note(child):
                         return True
                 return False
 
             # Focus the new note
-            find_and_focus_node(tree.root)
+            focus_new_note(tree.root)
 
             # Start editing the new note immediately
             self.app.set_timer(0.1, self.action_edit_note)
