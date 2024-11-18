@@ -39,6 +39,11 @@ class TabManager:
         """Create a new tab with its own tree and viewer"""
         from tui import NoteViewer  # Import here to avoid circular dependency
 
+        try:
+            old_tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
+            expanded_nodes = self.tree_manager.get_expanded_nodes(old_tree.root)
+        except Exception:
+            expanded_nodes = set()
         tree = Tree("Notes", id=f"notes-tree-{len(self.tabs)}")
         viewer = NoteViewer(id=f"note-viewer-{len(self.tabs)}")
         new_tab = TabContent(tree=tree, viewer=viewer)
@@ -48,6 +53,7 @@ class TabManager:
         # Set initial fold level to 1 for the new tab
         tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
         self.app._fold_to_level(tree.root, 0)
+        self.app._restore_expanded_nodes(tree.root, expanded_nodes)
 
     def close_current_tab(self) -> None:
         """Close the current tab if there's more than one"""
