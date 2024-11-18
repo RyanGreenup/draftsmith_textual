@@ -100,8 +100,8 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
-        ("left", "promote_note", "Promote"),
-        ("right", "demote_note", "Demote"),
+        ("H", "promote_note", "Promote"),
+        ("L", "demote_note", "Demote"),
         ("j", "cursor_down", "↓"),
         ("k", "cursor_up", "↑"),
         ("h", "collapse_node", "←"),
@@ -922,7 +922,7 @@ class NotesApp(App):
 
         # Get all immediate children of the parent (siblings)
         siblings = list(parent_node.children)
-        
+
         # Find current node's index among siblings
         try:
             current_index = siblings.index(current_node)
