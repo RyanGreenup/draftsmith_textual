@@ -164,8 +164,31 @@ class NotesApp(App):
 
     def setup_ui(self) -> None:
         """Setup or restore the UI components."""
+        # Ensure header is present
+        if not self.query("Header"):
+            self.mount(Header())
+        
+        # Ensure main containers are present
+        if not self.query("Container#tab-content"):
+            self.mount(
+                Container(
+                    Static("", id="tab-bar"),
+                    Container(id="tab-content"),
+                )
+            )
+        
+        # Ensure footer is present
+        if not self.query("Footer"):
+            self.mount(Footer())
+        
         # Update the tab bar
         self.tab_manager.update_tab_bar()
+        
+        # Restore current tab content
+        if self.tab_manager.current_tab:
+            tab_content = self.query_one("#tab-content", Container)
+            tab_content.mount(self.tab_manager.current_tab.tree)
+            tab_content.mount(self.tab_manager.current_tab.viewer)
 
     def on_mount(self) -> None:
         """Create initial tab when app starts."""
