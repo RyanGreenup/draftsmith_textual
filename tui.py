@@ -95,7 +95,7 @@ class NotesApp(App):
     last_filter: str = ""  # Store the last filter query
     last_search: str = ""  # Store the last search query
     dialog_mode: str = "filter"  # Current dialog mode
-    marked_for_move: set[int] = set()  # Store IDs of notes marked for moving
+    marked_for_move: List[int] = []  # Store IDs of notes marked for moving
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     css_file = os.path.join(this_dir, "notes_css.css")
@@ -451,19 +451,29 @@ class NotesApp(App):
 
         return find_and_select(tree.root)
 
+    def select_node_by_id(self, note_id: int) -> bool:
+        # This needs to run twice to work, something about first selecting the root
+        # then selecting the node
+        # not sure why exactly, but it works so # TODO
+        # In particular this was an issue in `action_new_note`, but it's not clear why and may occur elsewhere
+        self._select_node_by_id(note_id)
+        return self._select_node_by_id(note_id)
+
     def action_jump_mark(self) -> None:
-        # Walk the tree through the tree and find the node with the ID 179
-        if self.select_node_by_id(179):
-            return
+        # Get the id of the marked note
+        if len(self.marked_for_move) > 0:
+            marked_node = self.marked_for_move[0]
+            if self.select_node_by_id(marked_node):
+                return
+            else:
+                self.notify("Unable to select Note by id", severity="warning")
         else:
-            self.notify("Unable to select Note by id", severity="warning")
+            self.notify("No notes marked for moving", severity="warning")
 
     def _get_tree(self) -> Tree:
         # TODO use this everywhere
         # TODO use a property instead
-        tree = self.query_one(
-            f"#notes-tree-{self.tab_manager.current_tab_index}", Tree
-        )
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         return tree
 
     def _get_selected_node(self) -> Optional[TreeNode]:
@@ -739,39 +749,17 @@ class NotesApp(App):
             # Refresh the tree view
             self.refresh_notes()
 
-            # Find and focus the new note after refresh
-            def focus_new_note(node: TreeNode) -> bool:
-                if isinstance(node.data, api.TreeNote) and node.data.id == new_note_id:
-                    # Expand all parent nodes to make the new node visible
-                    current = node.parent
-                    while current and current != tree.root:
-                        current.expand()
-                        current = current.parent
-                    tree.root.expand()
-
-                    # Select the node and ensure it's visible
-                    tree.select_node(node)
-                    tree.scroll_to_node(node)
-                    return True
-
-                for child in node.children:
-                    if focus_new_note(child):
-                        return True
-                return False
-
-            # Focus the new note
-            # TODO this doesn't work
-            # focus_new_note(tree.root)
+            self.select_node_by_id(new_note_id)
 
             # Start editing the new note immediately
-            # self.app.set_timer(0.1, self.action_edit_note)
+            self.app.set_timer(0.1, self.action_edit_note)
 
         except Exception as e:
             self.notify(f"Error creating note: {str(e)}", severity="error")
 
     def _apply_search(self, value: str) -> None:
         """Apply search with current view mode."""
-        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
+        tree = self._get_tree()
         tree.clear()
 
         try:
