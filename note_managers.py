@@ -159,10 +159,12 @@ class NoteContentManager:
             if suspend:
                 # Use context manager for suspension if provided
                 if hasattr(self, "suspend_context"):
-                    with self.suspend_context():
-                        result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
+                    with self.suspend_context():  # pyright: ignore
+                        _result = subprocess.run(
+                            [editor_cmd, str(tmp_path)], check=True
+                        )
                 else:
-                    result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
+                    _result = subprocess.run([editor_cmd, str(tmp_path)], check=True)
             else:
                 process = await asyncio.create_subprocess_exec(
                     editor_cmd,

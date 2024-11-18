@@ -167,7 +167,7 @@ class NotesApp(App):
         # Ensure header is present
         if not self.query("Header"):
             self.mount(Header())
-        
+
         # Ensure main containers are present
         if not self.query("Container#tab-content"):
             self.mount(
@@ -176,14 +176,13 @@ class NotesApp(App):
                     Container(id="tab-content"),
                 )
             )
-        
+
         # Ensure footer is present
-        if not self.query("Footer"):
-            self.mount(Footer())
-        
+        self.mount(Footer())
+
         # Update the tab bar
         self.tab_manager.update_tab_bar()
-        
+
         # Restore current tab content
         if self.tab_manager.current_tab:
             tab_content = self.query_one("#tab-content", Container)
@@ -194,9 +193,9 @@ class NotesApp(App):
         """Create initial tab when app starts."""
         self.tab_manager.create_new_tab()
         # Set initial fold level to 1
-        self.current_fold_level = 1
+        self.current_fold_level = 0
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
-        self._fold_to_level(tree.root, 1)
+        self._fold_to_level(tree.root, 0)
 
     def _get_expanded_nodes(self, node: TreeNode) -> set[str]:
         """Get the titles of all expanded nodes in the tree."""
@@ -235,7 +234,9 @@ class NotesApp(App):
             # Add error message to root node
             tree.root.add_leaf("Error loading notes: " + str(e))
 
-    def _populate_tree(self, notes: list[api.TreeNote], parent: Tree | TreeNode) -> None:
+    def _populate_tree(
+        self, notes: list[api.TreeNote], parent: Tree | TreeNode
+    ) -> None:
         """Recursively populate the tree with notes."""
         self.tab_manager.tree_manager.populate_tree(notes, parent, self.marked_for_move)
 
@@ -899,11 +900,14 @@ class NotesApp(App):
 
             # If there's a grandparent (that's not the root), attach to it
             if grandparent_node and grandparent_node != tree.root:
-                grandparent_note = grandparent_node.data
-                self.notes_api.attach_note_to_parent(
-                    current_note.id, grandparent_note.id
-                )
-                self.notify(f"Promoted note: {current_note.title}")
+                if grandparent_note := grandparent_node.data:
+                    self.notes_api.attach_note_to_parent(
+                        current_note.id, grandparent_note.id
+                    )
+                    self.notify(f"Promoted note: {current_note.title}")
+                else:
+                    # If the gradparent note does not have a data object, something has gone wrong
+                    self.notify("Error promoting note: grandparent node is not a note")
             else:
                 # Note becomes root-level
                 self.notify(f"Note moved to root level: {current_note.title}")
@@ -944,25 +948,27 @@ class NotesApp(App):
 
         # Get the previous sibling
         previous_sibling = siblings[current_index - 1]
-        previous_note = previous_sibling.data
-
-        try:
-            # If current note has a parent, detach it first
+        if previous_note := previous_sibling.data:
             try:
-                self.notes_api.detach_note_from_parent(current_note.id)
-            except Exception:
-                # Ignore error if note doesn't have a parent
-                pass
+                # If current note has a parent, detach it first
+                try:
+                    self.notes_api.detach_note_from_parent(current_note.id)
+                except Exception:
+                    # Ignore error if note doesn't have a parent
+                    pass
 
-            # Attach to previous sibling
-            self.notes_api.attach_note_to_parent(current_note.id, previous_note.id)
-            self.notify(f"Demoted note under: {previous_note.title}")
+                # Attach to previous sibling
+                self.notes_api.attach_note_to_parent(current_note.id, previous_note.id)
+                self.notify(f"Demoted note under: {previous_note.title}")
 
-            # Refresh the tree view
-            self.refresh_notes()
+                # Refresh the tree view
+                self.refresh_notes()
 
-        except Exception as e:
-            self.notify(f"Error demoting note: {str(e)}", severity="error")
+            except Exception as e:
+                self.notify(f"Error demoting note: {str(e)}", severity="error")
+        else:
+            # If previous_sibling does not have a data object, something has gone wrong
+            self.notify("Error demoting note: previous sibling is not a note")
 
 
 if __name__ == "__main__":
