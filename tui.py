@@ -259,7 +259,7 @@ class NotesApp(App):
 
     def action_expand_node(self) -> None:
         """Expand the selected tree node."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(Tree)
         if tree.cursor_node:
             tree.cursor_node.expand()
 
