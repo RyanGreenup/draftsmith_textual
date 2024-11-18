@@ -100,7 +100,7 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
-        ("alt+h", "promote_note", "Promote"),
+        ("a", "promote_note", "Promote"),
         ("j", "cursor_down", "↓"),
         ("k", "cursor_up", "↑"),
         ("h", "collapse_node", "←"),
@@ -560,7 +560,7 @@ class NotesApp(App):
             return
 
         tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
-        
+
         # Handle root-level paste (no target note selected)
         target_note_id = None
         if tree.cursor_node and isinstance(tree.cursor_node.data, api.TreeNote):
@@ -877,20 +877,20 @@ class NotesApp(App):
             return
 
         current_note = tree.cursor_node.data
-        
+
         # Find parent node
         parent_node = tree.cursor_node.parent
         if not parent_node or parent_node == tree.root:
             self.notify("Note is already at root level", severity="warning")
             return
-            
+
         # Find grandparent node
         grandparent_node = parent_node.parent
-        
+
         try:
             # First detach from current parent
             self.notes_api.detach_note_from_parent(current_note.id)
-            
+
             # If there's a grandparent (that's not the root), attach to it
             if grandparent_node and grandparent_node != tree.root:
                 grandparent_note = grandparent_node.data
@@ -899,10 +899,10 @@ class NotesApp(App):
             else:
                 # Note becomes root-level
                 self.notify(f"Note moved to root level: {current_note.title}")
-                
+
             # Refresh the tree view
             self.refresh_notes()
-            
+
         except Exception as e:
             self.notify(f"Error promoting note: {str(e)}", severity="error")
 
