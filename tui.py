@@ -16,6 +16,7 @@ import os
 import socket
 import subprocess
 import tempfile
+from note_managers import filter_notes_by_ids
 
 
 class NoteViewer(Static):
@@ -159,30 +160,6 @@ class NotesApp(App):
         self.current_fold_level = 1
         self._fold_to_level(tree.root, 1)
 
-    def _filter_notes_by_ids(
-        self, notes: List[api.TreeNote], matching_ids: set[int]
-    ) -> List[api.TreeNote]:
-        """Filter notes tree to only include paths to matching IDs."""
-        filtered = []
-
-        for note in notes:
-            current_note = api.TreeNote(
-                id=note.id, title=note.title, content=note.content, children=[]
-            )
-
-            # Recursively filter children
-            filtered_children = (
-                self._filter_notes_by_ids(note.children, matching_ids)
-                if note.children
-                else []
-            )
-
-            # Include note if it matches or has matching children
-            if note.id in matching_ids or filtered_children:
-                current_note.children = filtered_children
-                filtered.append(current_note)
-
-        return filtered
 
     def _filter_notes(
         self, notes: List[api.TreeNote], query: str
@@ -746,7 +723,7 @@ class NotesApp(App):
                 # For hierarchical view, preserve paths but order matched leaves by search order
                 matching_ids = {note.id: idx for idx, note in enumerate(search_results)}
                 notes = self.notes_api.get_notes_tree()
-                filtered_notes = self._filter_notes_by_ids(
+                filtered_notes = filter_notes_by_ids(
                     notes, set(matching_ids.keys())
                 )
 

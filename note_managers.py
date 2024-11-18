@@ -194,6 +194,27 @@ class NoteStateManager:
         self.flat_view: bool = False
         self.current_fold_level: int = 0
 
+def filter_notes_by_ids(notes: List[api.TreeNote], matching_ids: set[int]) -> List[api.TreeNote]:
+    """Filter notes tree to only include paths to matching IDs."""
+    filtered = []
+
+    for note in notes:
+        current_note = api.TreeNote(
+            id=note.id, title=note.title, content=note.content, children=[]
+        )
+
+        filtered_children = (
+            filter_notes_by_ids(note.children, matching_ids)
+            if note.children
+            else []
+        )
+
+        if note.id in matching_ids or filtered_children:
+            current_note.children = filtered_children
+            filtered.append(current_note)
+
+    return filtered
+
 def flatten_filtered_notes(notes: List[api.TreeNote]) -> List[api.TreeNote]:
     """Convert hierarchical filtered notes into a flat list."""
     flattened = []
