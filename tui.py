@@ -259,13 +259,13 @@ class NotesApp(App):
 
     def action_expand_node(self) -> None:
         """Expand the selected tree node."""
-        tree = self.query_one(Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         if tree.cursor_node:
             tree.cursor_node.expand()
 
     def action_collapse_node(self) -> None:
         """Collapse the selected tree node."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
         if tree.cursor_node:
             tree.cursor_node.collapse()
 
@@ -299,7 +299,7 @@ class NotesApp(App):
 
     def action_fold_cycle(self) -> None:
         """Cycle through fold levels (expanding)."""
-        tree = self.query_one("#notes-tree", Tree)
+        tree = self.query_one(f"#notes-tree-{self.tab_manager.current_tab_index}", Tree)
 
         # Calculate next fold level
         if self.current_fold_level == 0:
