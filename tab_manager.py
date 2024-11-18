@@ -64,6 +64,7 @@ class TabManager:
             if current_tab:
                 tab_content.mount(current_tab.tree)
                 tab_content.mount(current_tab.viewer)
+                self.refresh_current_tab()
 
             self.update_tab_bar()
 
