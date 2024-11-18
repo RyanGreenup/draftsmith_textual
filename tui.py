@@ -153,25 +153,19 @@ class NotesApp(App):
         self.tab_manager = TabManager(self, self.notes_api)
         self.socket_path = socket_path  # Store socket path
 
-    def setup_ui(self) -> None:
-        """Setup or restore the UI components."""
-        # Ensure we have the main containers
-        if not self.query("Container#tab-content"):
-            self.mount(
-                Container(
-                    Static("", id="tab-bar"),
-                    Container(id="tab-content"),
-                )
-            )
-        
-        # Update the tab bar
-        self.tab_manager.update_tab_bar()
-
     def compose(self) -> ComposeResult:
         """Create child widgets with tabs."""
         yield Header()
-        self.setup_ui()
+        yield Container(
+            Static("", id="tab-bar"),
+            Container(id="tab-content"),
+        )
         yield Footer()
+
+    def setup_ui(self) -> None:
+        """Setup or restore the UI components."""
+        # Update the tab bar
+        self.tab_manager.update_tab_bar()
 
     def on_mount(self) -> None:
         """Create initial tab when app starts."""
