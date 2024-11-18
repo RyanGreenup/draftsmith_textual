@@ -826,7 +826,7 @@ class NotesApp(App):
 
             try:
                 notes = self.notes_api.get_notes_tree()
-                filtered_notes = self._filter_notes(notes, value)
+                filtered_notes = filter_notes_by_query(notes, value)
                 root = tree.root
                 self._populate_tree(filtered_notes, root)
                 self._unfold_node(tree.root)
