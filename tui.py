@@ -416,11 +416,38 @@ class NotesApp(App):
         tree.action_cursor_down()
 
     def select_node_by_id(self, note_id: int) -> bool:
-        """Recursively select a node by ID."""
+        """Recursively select a node by ID and make it visible.
+        
+        Args:
+            note_id: The ID of the note to select
+            
+        Returns:
+            bool: True if the node was found and selected, False otherwise
+        """
         tree = self._get_tree()
-        if note := self._get_selected_note():
-            if note.id == note_id:
-                # TODO the rest must be implemented
+        
+        def find_and_select(node: TreeNode) -> bool:
+            # Check if this node matches
+            if isinstance(node.data, api.TreeNote) and node.data.id == note_id:
+                # Expand all parent nodes to make this node visible
+                current = node.parent
+                while current and current != tree.root:
+                    current.expand()
+                    current = current.parent
+                tree.root.expand()
+                
+                # Select the node and ensure it's visible
+                tree.select_node(node)
+                tree.scroll_to_node(node)
+                return True
+                
+            # Recursively check children
+            for child in node.children:
+                if find_and_select(child):
+                    return True
+            return False
+            
+        return find_and_select(tree.root)
 
     def action_jump_mark(self) -> None:
         # Walk the tree through the tree and find the node with the ID 179
