@@ -209,6 +209,16 @@ class ExternalIntegrationManager:
         except (FileNotFoundError, ConnectionRefusedError) as e:
             raise ConnectionError(f"GUI preview connection failed: {str(e)}")
 
+    def refresh_gui(self) -> None:
+        """Send refresh signal to GUI preview."""
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.connect(self.socket_path)
+                message = json.dumps({"command": "refresh"})
+                sock.sendall(message.encode())
+        except (FileNotFoundError, ConnectionRefusedError) as e:
+            raise ConnectionError(f"GUI preview connection failed: {str(e)}")
+
 
 class NoteStateManager:
     """Manages application state"""
