@@ -52,10 +52,11 @@ class NotePage(QWebEnginePage):
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         url_str = url.toString()
-        if url_str.startswith("file:///note/"):
+        if url_str.startswith("file:///"):
             try:
                 # Extract note ID from path
                 note_id = int(url.path().split("/")[-1])
+                print(note_id)
                 # Update the combo box
                 self.app._update_note_id(note_id)
                 return False  # Prevent actual navigation
@@ -443,7 +444,7 @@ class MarkdownPreviewApp(QMainWindow):
                     /* Dark mode heading styles */
                     {self.dark_mode and '''
                     .markdown h1,
-                    .markdown h2, 
+                    .markdown h2,
                     .markdown h3,
                     .markdown h4,
                     .markdown h5,
