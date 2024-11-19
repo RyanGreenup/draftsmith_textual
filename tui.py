@@ -170,7 +170,7 @@ class NotesApp(App):
                 Container(
                     Static("Backlinks", id="backlinks-panel"),
                     Static("Forward Links", id="forward-links-panel"),
-                    id_="bottom-container"
+                    id="bottom-container"
                 ),
             ),
         )
