@@ -165,7 +165,14 @@ class NotesApp(App):
         yield Header()
         yield Container(
             Static("", id="tab-bar"),
-            Container(id="tab-content"),
+            Container(
+                Container(id="tab-content", id_="top-container"),
+                Container(
+                    Static("Backlinks", id="backlinks-panel"),
+                    Static("Forward Links", id="forward-links-panel"),
+                    id_="bottom-container"
+                ),
+            ),
         )
         yield Footer()
 

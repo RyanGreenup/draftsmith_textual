@@ -1,3 +1,11 @@
+#top-container {
+    height: 50%;
+}
+
+#bottom-container {
+    height: 50%;
+}
+
 Tree {
     width: 40%;
     dock: left;
@@ -8,6 +16,22 @@ NoteViewer {
     dock: right;
     background: $surface;
     padding: 1;
+}
+
+#backlinks-panel {
+    width: 50%;
+    dock: left;
+    background: $surface;
+    padding: 1;
+    border: solid $primary;
+}
+
+#forward-links-panel {
+    width: 50%;
+    dock: right;
+    background: $surface;
+    padding: 1;
+    border: solid $primary;
 }
 
 FilterDialog {
