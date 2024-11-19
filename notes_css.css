@@ -14,24 +14,24 @@ Tree {
 NoteViewer {
     width: 60%;
     dock: right;
-    background: $surface;
+    background: $panel;
     padding: 1;
 }
 
 #backlinks-panel {
     width: 50%;
     dock: left;
-    background: $surface;
+    background: $panel;
     padding: 1;
-    border: solid $primary;
+    border: solid $secondary;
 }
 
 #forward-links-panel {
     width: 50%;
     dock: right;
-    background: $surface;
+    background: $panel;
     padding: 1;
-    border: solid $primary;
+    border: solid $secondary;
 }
 
 FilterDialog {
@@ -43,17 +43,17 @@ FilterDialog Input {
     margin: 0;    /* Remove margin */
     border: none; /* Remove border */
     height: 3;    /* Match container height */
-    background: $boost; /* Match container background */
+    background: $panel; /* Match container background */
 }
 
 Footer {
-    background: $boost;
+    background: $panel;
     color: $text;
     padding: 0 1;
 }
 
 Footer > .footer--key {
-    background: $primary-darken-2;
+    background: $accent;
     color: $text;
     padding: 0 1;
     margin: 0 1 0 0;
@@ -61,7 +61,7 @@ Footer > .footer--key {
 }
 
 Footer > .footer--highlight {
-    background: $primary-darken-3;
+    background: $accent-darken-1;
     color: $text;
 }
 
