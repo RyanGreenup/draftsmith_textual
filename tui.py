@@ -240,6 +240,8 @@ class NotesApp(App):
             if note and isinstance(note, api.TreeNote):
                 viewer = self.query_one(NoteViewer)
                 viewer.display_note(note.content)
+                # Update title with note ID
+                self._update_title_for_note(note)
 
                 # Auto-sync to GUI if enabled
                 if self.auto_sync_gui:
@@ -424,6 +426,8 @@ class NotesApp(App):
                 tree.cursor = node  # Set cursor position
                 tree.select_node(node)
                 tree.scroll_to_node(node)
+                # Update title with note ID
+                self._update_title_for_note(node.data)
                 return True
 
             # Recursively check children
@@ -465,6 +469,10 @@ class NotesApp(App):
         self.notify("Nothing selected in tree", severity="warning")
 
     # TODO make sure this is used everywhere
+    def _update_title_for_note(self, note: api.TreeNote) -> None:
+        """Update the app title with note information."""
+        self.title = f"Notes - #{note.id}"
+
     def _get_selected_note(self) -> Optional[Note]:
         if node := self._get_selected_node():
             if note := node.data:
