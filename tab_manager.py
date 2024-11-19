@@ -3,7 +3,7 @@ from textual.widgets import Tree, Static
 from textual.containers import Container
 from typing import Optional, List, TYPE_CHECKING
 import api
-from note_managers import NoteTreeManager
+from note_managers import NoteTreeManager, ExternalIntegrationManager
 
 if TYPE_CHECKING:
     from tui import NotesApp, NoteViewer
@@ -29,6 +29,9 @@ class TabManager:
         self.tabs: List[TabContent] = []
         self.current_tab_index: int = 0
         self.tree_manager = NoteTreeManager(notes_api)
+        self.external_integration_manager = ExternalIntegrationManager(
+            app.base_url, app.socket_path
+        )
 
     @property
     def current_tab(self) -> Optional[TabContent]:
