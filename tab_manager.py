@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from textual.widgets import Tree, Static
-from textual.containers import Container
+from textual.containers import Container, Vertical
 from typing import Optional, List, TYPE_CHECKING
 import api
 from note_managers import NoteTreeManager
@@ -15,6 +15,8 @@ class TabContent:
 
     tree: Tree
     viewer: "NoteViewer"  # Forward reference
+    backlinks_panel: Static
+    forward_links_panel: Static
     last_filter: str = ""
     last_search: str = ""
     dialog_mode: str = "filter"
@@ -44,9 +46,18 @@ class TabManager:
             expanded_nodes = self.tree_manager.get_expanded_nodes(old_tree.root)
         except Exception:
             expanded_nodes = set()
-        tree = Tree("Notes", id=f"notes-tree-{len(self.tabs)}")
-        viewer = NoteViewer(id=f"note-viewer-{len(self.tabs)}")
-        new_tab = TabContent(tree=tree, viewer=viewer)
+        tab_index = len(self.tabs)
+        tree = Tree("Notes", id=f"notes-tree-{tab_index}")
+        viewer = NoteViewer(id=f"note-viewer-{tab_index}")
+        backlinks_panel = Static("Backlinks", id="backlinks-panel")
+        forward_links_panel = Static("Forward Links", id="forward-links-panel")
+        
+        new_tab = TabContent(
+            tree=tree,
+            viewer=viewer,
+            backlinks_panel=backlinks_panel,
+            forward_links_panel=forward_links_panel
+        )
         self.tabs.append(new_tab)
         self.switch_to_tab(len(self.tabs) - 1)
         self.refresh_current_tab()
@@ -71,7 +82,12 @@ class TabManager:
             self.current_tab_index = index
             current_tab = self.current_tab
             if current_tab:
-                tab_content.mount(current_tab.tree)
+                tree_container = Vertical(
+                    current_tab.tree,
+                    current_tab.backlinks_panel,
+                    current_tab.forward_links_panel,
+                )
+                tab_content.mount(tree_container)
                 tab_content.mount(current_tab.viewer)
                 self.refresh_current_tab()
 
