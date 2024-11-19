@@ -10,7 +10,7 @@ class NoteViewer(Static):
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
-        self.link_regex = re.compile(r'\[\[(\d+)\]\]')
+        self.link_regex = re.compile(r"\[\[(\d+)\]\]")
         yield Markdown()
 
     def display_note(self, content: Optional[str]) -> None:
@@ -30,9 +30,8 @@ class NoteViewer(Static):
             # Extract the numeric id from the matched group
             number = match.group(1)
             # Return the new string format
-            return f'[{number}]({number})'
+            return f"[{number}]({number})"
 
         # Use sub with the compiled pattern and the replacement function.
         result = self.link_regex.sub(replacer, content)
         return result
-

@@ -39,11 +39,23 @@ class TabManager:
         """Create a new tab with its own tree and viewer"""
         from tui import NoteViewer  # Import here to avoid circular dependency
 
-        try:
-            old_tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
-            expanded_nodes = self.tree_manager.get_expanded_nodes(old_tree.root)
-        except Exception:
+        # Remember the currently selected note to restore it later
+        num_tabs = len(self.tabs)
+        if num_tabs > 0:
+            try:
+                current_note = self.app._get_selected_note()
+            except Exception:
+                current_note = None
+            # Remember the current tree state to restore it later
+            try:
+                old_tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
+                expanded_nodes = self.tree_manager.get_expanded_nodes(old_tree.root)
+            except Exception:
+                expanded_nodes = set()
+        else:
+            current_note = None
             expanded_nodes = set()
+
         tree = Tree("Notes", id=f"notes-tree-{len(self.tabs)}")
         viewer = NoteViewer(id=f"note-viewer-{len(self.tabs)}")
         new_tab = TabContent(tree=tree, viewer=viewer)
@@ -54,6 +66,8 @@ class TabManager:
         tree = self.app.query_one(f"#notes-tree-{len(self.tabs)-1}", Tree)
         self.app._fold_to_level(tree.root, 0)
         self.app._restore_expanded_nodes(tree.root, expanded_nodes)
+        if current_note:
+            self.app.select_node_by_id(current_note.id)
 
     def close_current_tab(self) -> None:
         """Close the current tab if there's more than one"""
