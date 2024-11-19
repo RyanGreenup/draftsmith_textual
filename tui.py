@@ -1012,6 +1012,20 @@ class NotesApp(App):
         except Exception as e:
             self.notify(f"Error promoting note: {str(e)}", severity="error")
 
+    def refresh_current_note_preview(self) -> None:
+        """Refresh the current note preview by simulating a node highlight event."""
+        tree = self._get_tree()
+        if tree.cursor_node and isinstance(tree.cursor_node.data, api.TreeNote):
+            # Create a synthetic highlight event
+            event = Tree.NodeHighlighted(
+                tree, 
+                tree.cursor_node, 
+                control=tree,
+                button=0,  # Not used for our purposes
+                style=None,  # Not used for our purposes
+            )
+            self.on_tree_node_highlighted(event)
+
     def action_demote_note(self) -> None:
         """Demote the current note to be a child of the previous sibling note."""
         tree = self._get_tree()

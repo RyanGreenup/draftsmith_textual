@@ -88,8 +88,20 @@ class TabManager:
                 tab_content.mount(current_tab.tree)
                 tab_content.mount(current_tab.viewer)
                 self.refresh_current_tab()
+                self.update_tab_bar()
 
-            self.update_tab_bar()
+                # Schedule the viewer update for after mount
+                def update_viewer():
+                    try:
+                        selected_node = current_tab.tree.cursor_node
+                        if selected_node and selected_node.data:
+                            note = selected_node.data
+                            if isinstance(note, api.TreeNote):
+                                current_tab.viewer.display_note(note.content)
+                    except Exception:
+                        current_tab.viewer.display_note(None)
+
+                self.app.call_after_refresh(update_viewer)
 
     def update_tab_bar(self) -> None:
         """Update the tab bar display"""
