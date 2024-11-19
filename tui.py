@@ -863,10 +863,11 @@ class NotesApp(App):
         await self.mount(FilterDialog())
 
     def action_fzf(self) -> None:
+        base_url = self.notes_api.base_url
         this_dir = os.path.dirname(os.path.abspath(__file__))
         with self.suspend():
             out = subprocess.run(
-                [os.path.join(this_dir, "fzf.py"), "select-note"],
+                [os.path.join(this_dir, "fzf.py"), "select-note", "--base-url", base_url],
                 text=True,
                 capture_output=True,
             )
