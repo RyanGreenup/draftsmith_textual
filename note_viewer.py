@@ -2,6 +2,7 @@ from textual.app import ComposeResult
 from textual.widgets.markdown import Markdown
 from typing import Optional
 from textual.widgets import Static
+from textual.containers import ScrollableContainer
 import re
 
 
@@ -11,7 +12,7 @@ class NoteViewer(Static):
     def compose(self) -> ComposeResult:
         """Create child widgets."""
         self.link_regex = re.compile(r"\[\[(\d+)\]\]")
-        yield Markdown()
+        yield ScrollableContainer(Markdown())
 
     def display_note(self, content: Optional[str]) -> None:
         """Update the display with note content"""
