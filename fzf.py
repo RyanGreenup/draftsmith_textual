@@ -58,7 +58,7 @@ def select_note(
         # Let user select from titles with content preview
         this_dir = os.path.dirname(os.path.abspath(__file__))
         preview_cmd = os.path.join(this_dir, "fzf.py")
-        preview_cmd = f"python {preview_cmd} show-content {{}} --base_url {base_url}"
+        preview_cmd = f"python {preview_cmd} show-content {{}} --base-url {base_url}"
         selected = iterfzf(
             title_to_note.keys(), preview=preview_cmd
         )
