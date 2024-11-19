@@ -22,16 +22,47 @@ The Notes TUI is a terminal-based user interface for managing and viewing notes.
 
 ## Keyboard Shortcuts
 
-### Navigation
-- `Tab`: Switch between tree view and content pane
-- `↑/↓`: Navigate through notes
-- `Enter`: Select a note
-- `Space`: Expand/collapse tree nodes
-
-### View Controls
-- `Ctrl+Q`: Quit application
-- `Ctrl+R`: Refresh content
-- `Esc`: Close popups/modals
+| Key | Description |
+|-----|-------------|
+| **Navigation** |
+| `j` | Move cursor down |
+| `k` | Move cursor up |
+| `h` | Collapse current node |
+| `l` | Expand current node |
+| `b` | Show backlinks |
+| `B` | Show forwardlinks |
+| `'` | Jump to marked note |
+| `H` | Promote note in hierarchy |
+| `L` | Demote note in hierarchy |
+| **Folding** |
+| `z` | Cycle fold forward |
+| `Z` | Cycle fold reverse |
+| `o` | Unfold entire tree |
+| `O` | Fold to first level |
+| **Tabs** |
+| `t` | Open new tab |
+| `ctrl+w` | Close current tab |
+| `>` | Switch to next tab |
+| `<` | Switch to previous tab |
+| **Actions** |
+| `e` | Edit note |
+| `E` | Edit note in GUI |
+| `f` | Filter notes |
+| `/` | Use fzf to select note |
+| `s` | Search notes |
+| `F` | Toggle follow mode |
+| `r` | Refresh view |
+| `f5` | Toggle flat view |
+| `g` | Open GUI preview |
+| `G` | Toggle auto-sync |
+| `x` | Mark note for move |
+| `p` | Paste as children |
+| `escape` | Clear marks |
+| `n` | Create new note |
+| `D` | Delete note |
+| `y` | Yank (copy) link |
+| **System** |
+| `q` | Quit application |
 
 ## Integration
 The TUI interfaces with a backend API for:
