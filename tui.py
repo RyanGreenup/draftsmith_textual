@@ -536,6 +536,12 @@ class NotesApp(App):
             viewer = self.query_one(NoteViewer)
             viewer.display_note(note.id, self.base_url)
 
+            # Refresh the GUI preview if connected
+            try:
+                self.tab_manager.external_integration_manager.refresh_gui()
+            except ConnectionError:
+                pass  # Ignore if GUI isn't connected
+
             # Refresh the tree and reapply filter/search if one exists
             if self.last_filter:
                 self._apply_filter(self.last_filter)
@@ -707,6 +713,12 @@ class NotesApp(App):
                 f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer
             )
             viewer.display_note(None)
+
+            # Refresh the GUI preview if connected
+            try:
+                self.tab_manager.external_integration_manager.refresh_gui()
+            except ConnectionError:
+                pass  # Ignore if GUI isn't connected
 
             # Refresh the tree view
             self.refresh_notes()
