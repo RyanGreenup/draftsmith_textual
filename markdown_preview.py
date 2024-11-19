@@ -298,6 +298,12 @@ class MarkdownPreviewApp(QMainWindow):
                                 if note_id is not None:
                                     # Schedule the combo box update in the main thread
                                     self.update_note_id.emit(note_id)
+                            elif message.get("command") == "refresh":
+                                # Schedule the refresh in the main thread
+                                QApplication.instance().postEvent(
+                                    self, 
+                                    QEvent(QEvent.Type.User)  # Custom event for refresh
+                                )
                         except json.JSONDecodeError:
                             print("Error: Invalid JSON message received")
                         except Exception as e:
@@ -340,6 +346,13 @@ class MarkdownPreviewApp(QMainWindow):
             self.ipc_server.close()
         if hasattr(self, "socket_path") and os.path.exists(self.socket_path):
             os.unlink(self.socket_path)
+
+    def event(self, event: QEvent) -> bool:
+        """Handle custom events."""
+        if event.type() == QEvent.Type.User:
+            self.refresh_notes()
+            return True
+        return super().event(event)
 
     def closeEvent(self, event):
         """Handle application closure."""
