@@ -1,14 +1,25 @@
-#top-container {
-    height: 30%;
-}
-
-#bottom-container {
-    height: 30%;
-}
-
 Tree {
     width: 40%;
     dock: left;
+    layout: vertical;  /* Add this to enable vertical layout */
+}
+
+#backlinks-panel {
+    width: 100%;  /* Take full width of tree container */
+    dock: bottom;
+    height: 30%;  /* Take 30% of tree container height */
+    background: $panel;
+    padding: 1;
+    border: solid $secondary;
+}
+
+#forward-links-panel {
+    width: 100%;  /* Take full width of tree container */
+    dock: bottom;
+    height: 30%;  /* Take 30% of tree container height */
+    background: $panel;
+    padding: 1;
+    border: solid $secondary;
 }
 
 NoteViewer {
@@ -16,22 +27,6 @@ NoteViewer {
     dock: right;
     background: $panel;
     padding: 1;
-}
-
-#backlinks-panel {
-    width: 50%;
-    dock: left;
-    background: $panel;
-    padding: 1;
-    border: solid $secondary;
-}
-
-#forward-links-panel {
-    width: 50%;
-    dock: right;
-    background: $panel;
-    padding: 1;
-    border: solid $secondary;
 }
 
 FilterDialog {
