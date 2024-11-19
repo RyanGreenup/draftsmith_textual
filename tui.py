@@ -126,6 +126,7 @@ class NotesApp(App):
         ("e", "edit_note", "Edit"),
         ("E", "gui_edit_note", "GUI Edit"),
         ("f", "filter_notes", "Filter"),
+        ("/", "fzf", "Use fzf to select a note"),
         ("s", "search_notes", "Search"),
         ("F", "toggle_follow", "Follow"),
         ("r", "refresh", "Refresh"),
@@ -860,6 +861,23 @@ class NotesApp(App):
         """Search notes using the API search function."""
         self.dialog_mode = "search"
         await self.mount(FilterDialog())
+
+    def action_fzf(self) -> None:
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        with self.suspend():
+            out = subprocess.run(
+                [os.path.join(this_dir, "fzf.py"), "select-note"],
+                text=True,
+                capture_output=True,
+            )
+        # Restore the complete UI
+        self.setup_ui()
+        if out.returncode == 0:
+            try:
+                note_id = int(out.stdout.strip())
+                self.select_node_by_id(note_id)
+            except ValueError:
+                self.notify("Invalid note ID", severity="error")
 
     def handle_input_change(self, value: str) -> None:
         """Handle input changes in the filter dialog."""

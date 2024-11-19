@@ -32,6 +32,9 @@ def create_preview_file(note: Note) -> str:
 @app.command()
 def select_note(
     base_url: str = typer.Option("http://localhost:37240", help="API base URL"),
+    return_content: bool = typer.Option(
+        False, help="Return the content of the selected note (Defaults to ID)"
+    ),
 ) -> None:
     """
     Interactive note selection using fzf.
@@ -57,11 +60,14 @@ def select_note(
         )
 
         if selected and isinstance(selected, str) and selected in title_to_note:
-            # Print the full selected note
+            # Print the ID of that note
             note = title_to_note[selected]
-            rprint(f"\n[bold]Selected note:[/bold] {note.title}")
-            rprint("[bold]" + "-" * 40 + "[/bold]")
-            print(note.content)
+            if return_content:
+                rprint(f"\n[bold]Selected note:[/bold] {note.title}")
+                rprint("[bold]" + "-" * 40 + "[/bold]")
+                print(note.content)
+            else:
+                print(note.id)
 
     except Exception as e:
         rprint(f"[red]Error: {str(e)}[/red]")
