@@ -171,6 +171,12 @@ class MarkdownPreviewApp(QMainWindow):
         self.view_source_action.triggered.connect(self.view_source)
         toolbar.addAction(self.view_source_action)
 
+        # Add refresh action
+        self.refresh_action = QAction("Refresh", self)
+        self.refresh_action.setShortcut(QKeySequence("Ctrl+R"))
+        self.refresh_action.triggered.connect(self.refresh_notes)
+        toolbar.addAction(self.refresh_action)
+
         # Create a combo box for note IDs
         self.combo_box = QComboBox()
         self.combo_box.currentIndexChanged.connect(self.on_combo_box_changed)
@@ -307,6 +313,26 @@ class MarkdownPreviewApp(QMainWindow):
         index = self.combo_box.findData(note_id)
         if index >= 0:
             self.combo_box.setCurrentIndex(index)
+
+    def refresh_notes(self):
+        """Reload the list of notes from the API."""
+        try:
+            # Remember current selection
+            current_note_id = self.combo_box.currentData()
+            
+            # Clear existing items
+            self.combo_box.clear()
+            
+            # Repopulate the combo box
+            self.populate_combo_box()
+            
+            # Restore previous selection if it still exists
+            if current_note_id is not None:
+                index = self.combo_box.findData(current_note_id)
+                if index >= 0:
+                    self.combo_box.setCurrentIndex(index)
+        except Exception as e:
+            print(f"Error refreshing notes: {e}")
 
     def cleanup_ipc(self):
         """Clean up IPC resources."""
