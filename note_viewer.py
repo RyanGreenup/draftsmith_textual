@@ -19,7 +19,7 @@ class NoteViewer(Static):
 
     def display_note(self, note_id: Optional[int], base_url: Optional[str]) -> None:
         """Update the display with note content"""
-        markdown = self.query_one(Markdown)
+        markdown = self.query_one("ScrollableContainer Markdown")
         if base_url:
             if not self.note_api:
                 self.note_api = NoteAPI(base_url)
@@ -34,7 +34,7 @@ class NoteViewer(Static):
 
     def display_content(self, content: Optional[str]) -> None:
         """Update the display with some content"""
-        markdown = self.query_one(Markdown)
+        markdown = self.query_one("ScrollableContainer Markdown")
         if content:
             content = self.preprocess(content)
             markdown.update(content)
