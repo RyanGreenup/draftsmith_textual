@@ -31,7 +31,7 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal
+from PySide6.QtCore import QUrl, QByteArray, QBuffer, QIODevice, Qt, Signal, QEvent
 from PySide6.QtGui import QColor, QKeySequence, QAction, QPalette
 from PySide6.QtWebEngineCore import (
     QWebEngineSettings,
