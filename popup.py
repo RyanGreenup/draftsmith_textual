@@ -9,6 +9,9 @@ from typing import List
 import api
 
 
+# NOTE this class is not using the API to render the markdown
+# It uses the content directly
+# Given this is just a quick popup, we'll keep the code simple.
 class PopupScreen(ModalScreen):
     """A popup screen that displays a list of notes with preview."""
 

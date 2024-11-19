@@ -239,7 +239,7 @@ class NotesApp(App):
             note = event.node.data
             if note and isinstance(note, api.TreeNote):
                 viewer = self.query_one(NoteViewer)
-                viewer.display_note(note.content)
+                viewer.display_note(note.id, self.base_url)
                 # Update title with note ID
                 self._update_title_for_note(note)
 
@@ -255,7 +255,7 @@ class NotesApp(App):
                 viewer = self.query_one(
                     f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer
                 )
-                viewer.display_note(note.content)
+                viewer.display_note(note.id, self.base_url)
 
     def action_toggle_follow(self) -> None:
         """Toggle follow mode."""
@@ -534,7 +534,7 @@ class NotesApp(App):
 
             # Update the viewer
             viewer = self.query_one(NoteViewer)
-            viewer.display_note(new_content)
+            viewer.display_note(note.id, self.base_url)
 
             # Refresh the tree and reapply filter/search if one exists
             if self.last_filter:
@@ -1018,8 +1018,8 @@ class NotesApp(App):
         if tree.cursor_node and isinstance(tree.cursor_node.data, api.TreeNote):
             # Create a synthetic highlight event
             event = Tree.NodeHighlighted(
-                tree, 
-                tree.cursor_node, 
+                tree,
+                tree.cursor_node,
                 control=tree,
                 button=0,  # Not used for our purposes
                 style=None,  # Not used for our purposes
