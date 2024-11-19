@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import tempfile
+import os
 from iterfzf import iterfzf
 from api import NoteAPI, Note
 from typing import Dict, Optional
@@ -55,8 +56,11 @@ def select_note(
                 preview_files[clean_title] = create_preview_file(note)
 
         # Let user select from titles with content preview
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        preview_cmd = os.path.join(this_dir, "fzf.py")
+        preview_cmd = f"python {preview_cmd} show-content {{}}"
         selected = iterfzf(
-            title_to_note.keys(), preview="python fzf.py show-content {}"
+            title_to_note.keys(), preview=preview_cmd
         )
 
         if selected and isinstance(selected, str) and selected in title_to_note:
