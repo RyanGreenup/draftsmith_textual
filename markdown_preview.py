@@ -7,7 +7,6 @@ import socket
 import threading
 import os
 import json
-from pathlib import Path
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 
@@ -42,7 +41,6 @@ from PySide6.QtWebEngineCore import (
 )
 from api import NoteAPI
 import re
-import os
 
 
 class NotePage(QWebEnginePage):

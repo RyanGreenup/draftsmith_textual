@@ -2,11 +2,10 @@ from datetime import datetime
 from pathlib import Path
 from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
-from typing import Optional, List, Callable, Set
+from typing import Optional, List, Set
 import api
 import asyncio
 import json
-import os
 import socket
 import subprocess
 import tempfile

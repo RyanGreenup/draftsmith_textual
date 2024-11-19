@@ -9,8 +9,6 @@ from textual.widgets import Tree, Static, Input, Header, Footer
 from textual.reactive import reactive
 from tab_manager import TabManager
 from textual.widgets.tree import TreeNode
-from textual.reactive import reactive
-from textual.widgets.markdown import Markdown
 from typing import List, Optional
 import api
 from api import Note
@@ -21,22 +19,8 @@ import socket
 import subprocess
 import tempfile
 from note_managers import filter_notes_by_ids, filter_notes_by_query
-
-
-class NoteViewer(Static):
-    """Widget to display note content"""
-
-    def compose(self) -> ComposeResult:
-        """Create child widgets."""
-        yield Markdown()
-
-    def display_note(self, content: Optional[str]) -> None:
-        """Update the display with note content"""
-        markdown = self.query_one(Markdown)
-        if content:
-            markdown.update(content)
-        else:
-            markdown.update("No content")
+from popup import PopupScreen
+from note_viewer import NoteViewer
 
 
 class FilterDialog(Container):
@@ -104,6 +88,8 @@ class NotesApp(App):
 
     BINDINGS = [
         # Navigation
+        ("b", "show_backlinks", "Backlinks"),
+        ("B", "show_forwardlinks", "Forwardlinks"),
         ("'", "jump_mark", "Jump to Mark"),
         ("y", "yank_link", "Yank"),
         ("H", "promote_note", "Promote"),
@@ -159,6 +145,7 @@ class NotesApp(App):
         self.flat_view = False  # Track if we're in flat view mode
         self.tab_manager = TabManager(self, self.notes_api)
         self.socket_path = socket_path  # Store socket path
+        self.base_url = base_url
 
     def compose(self) -> ComposeResult:
         """Create child widgets with tabs."""
@@ -731,7 +718,7 @@ class NotesApp(App):
             # Create a new note with default title and empty content
             content = "New Note %Y-%m-%d %H:%M:%S"
             title = datetime.now().strftime(content)
-            new_note = self.notes_api.create_note(title=title, content=f"# ")
+            new_note = self.notes_api.create_note(title=title, content="# ")
             new_note_id = new_note["id"]
 
             # Attach as a Child of the current note if one is selected
@@ -867,7 +854,12 @@ class NotesApp(App):
         this_dir = os.path.dirname(os.path.abspath(__file__))
         with self.suspend():
             out = subprocess.run(
-                [os.path.join(this_dir, "fzf.py"), "select-note", "--base-url", base_url],
+                [
+                    os.path.join(this_dir, "fzf.py"),
+                    "select-note",
+                    "--base-url",
+                    base_url,
+                ],
                 text=True,
                 capture_output=True,
             )
@@ -950,6 +942,24 @@ class NotesApp(App):
     def action_prev_tab(self) -> None:
         """Switch to the previous tab."""
         self.tab_manager.previous_tab()
+
+    def action_show_popup(self, notes: list[Note]) -> None:
+        """Show the popup screen with the current tree's notes."""
+        self.push_screen(PopupScreen(notes))
+
+    def action_show_backlinks(self) -> None:
+        if current_note := self._get_selected_note():
+            current_note_id = current_note.id
+            note_api = api.NoteAPI(self.base_url)
+            notes = note_api.get_note_backlinks(current_note_id)
+            self.action_show_popup(notes)
+
+    def action_show_forwardlinks(self) -> None:
+        if current_note := self._get_selected_note():
+            current_note_id = current_note.id
+            note_api = api.NoteAPI(self.base_url)
+            notes = note_api.get_note_forward_links(current_note_id)
+            self.action_show_popup(notes)
 
     def action_promote_note(self) -> None:
         """Promote the current note up one level in the hierarchy."""

@@ -4,8 +4,6 @@ from datetime import datetime
 from pathlib import Path
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
-from pydantic import BaseModel
 import requests
 
 
