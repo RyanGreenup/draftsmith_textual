@@ -4,7 +4,8 @@ Tree {
     layout: vertical;  /* Add this to enable vertical layout */
 }
 
-#backlinks-panel {
+#backlinks-panel-0, #backlinks-panel-1, #backlinks-panel-2,
+#backlinks-panel-3, #backlinks-panel-4, #backlinks-panel-5 {
     width: 100%;  /* Take full width of tree container */
     dock: bottom;
     height: 30%;  /* Take 30% of tree container height */
@@ -13,7 +14,8 @@ Tree {
     border: solid $secondary;
 }
 
-#forward-links-panel {
+#forward-links-panel-0, #forward-links-panel-1, #forward-links-panel-2,
+#forward-links-panel-3, #forward-links-panel-4, #forward-links-panel-5 {
     width: 100%;  /* Take full width of tree container */
     dock: bottom;
     height: 30%;  /* Take 30% of tree container height */

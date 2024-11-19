@@ -49,9 +49,11 @@ class TabManager:
         tab_index = len(self.tabs)
         tree = Tree("Notes", id=f"notes-tree-{tab_index}")
         viewer = NoteViewer(id=f"note-viewer-{tab_index}")
-        backlinks_panel = Static("Backlinks", id="backlinks-panel")
-        forward_links_panel = Static("Forward Links", id="forward-links-panel")
-        
+    
+        # Create panels with unique IDs for each tab
+        backlinks_panel = Static("Backlinks", id=f"backlinks-panel-{tab_index}")
+        forward_links_panel = Static("Forward Links", id=f"forward-links-panel-{tab_index}")
+    
         new_tab = TabContent(
             tree=tree,
             viewer=viewer,
@@ -82,10 +84,12 @@ class TabManager:
             self.current_tab_index = index
             current_tab = self.current_tab
             if current_tab:
+                # Create a vertical container for tree and panels
                 tree_container = Vertical(
                     current_tab.tree,
                     current_tab.backlinks_panel,
                     current_tab.forward_links_panel,
+                    id=f"tree-container-{index}"
                 )
                 tab_content.mount(tree_container)
                 tab_content.mount(current_tab.viewer)
