@@ -97,7 +97,7 @@ class TabManager:
                         if selected_node and selected_node.data:
                             note = selected_node.data
                             if isinstance(note, api.TreeNote):
-                                current_tab.viewer.display_note(note.content)
+                                current_tab.viewer.display_note(note.id)
                     except Exception:
                         current_tab.viewer.display_note(None)
 
@@ -154,6 +154,6 @@ class TabManager:
 
         note = node.node.data
         if note and isinstance(note, api.TreeNote):
-            current_tab.viewer.display_note(note.content)
+            current_tab.viewer.display_note(note.id)
             if auto_sync:
                 self.app.connect_to_gui()
