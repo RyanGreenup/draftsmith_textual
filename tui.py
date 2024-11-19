@@ -165,6 +165,7 @@ class NotesApp(App):
         yield Header()
         yield Container(
             Static("", id="tab-bar"),
+            Container(id="tab-content"),
             Container(
                 Container(id="top-container"),
                 Container(
