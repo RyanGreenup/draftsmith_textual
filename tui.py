@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+import sys
 from pathlib import Path
 import pyperclip
 from textual.app import App, ComposeResult
@@ -872,9 +873,14 @@ class NotesApp(App):
     def action_fzf(self) -> None:
         base_url = self.notes_api.base_url
         this_dir = os.path.dirname(os.path.abspath(__file__))
+
+        #  Get the path to the current Python interpreter
+        current_python = sys.executable
+
         with self.suspend():
             out = subprocess.run(
                 [
+                    current_python,
                     os.path.join(this_dir, "fzf.py"),
                     "select-note",
                     "--base-url",
@@ -882,6 +888,7 @@ class NotesApp(App):
                 ],
                 text=True,
                 capture_output=True,
+                check=True,
             )
         # Restore the complete UI
         self.setup_ui()
