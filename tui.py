@@ -713,7 +713,6 @@ class NotesApp(App):
             viewer = self.query_one(
                 f"#note-viewer-{self.tab_manager.current_tab_index}", NoteViewer
             )
-            viewer.display_note(None)
 
             # Refresh the GUI preview if connected
             try:
