@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import tempfile
+import sys
 import os
 from iterfzf import iterfzf
 from api import NoteAPI, Note
@@ -66,8 +67,9 @@ def select_note(
 
         # Let user select from display strings with content preview
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        preview_cmd = os.path.join(this_dir, "fzf.py")
-        preview_cmd = f"python {preview_cmd} show-content {{}} --base-url {base_url}"
+        current_python = sys.executable
+        preview_cmd = os.path.join(this_dir, f"fzf.py")
+        preview_cmd = f"{current_python} {preview_cmd} show-content {{}} --base-url {base_url}"
         selected = iterfzf(
             display_to_note.keys(), preview=preview_cmd
         )
